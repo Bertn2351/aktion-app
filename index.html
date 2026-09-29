@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Aktionsblatt-Generator</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.50.0/dist/umd/supabase.js"></script>
 <style>
   :root{
     --orange:#f7941e; --orange-dark:#e8720c; --ink:#2b2320; --panel-bg:#f4f5f7;
@@ -139,10 +140,32 @@
     padding:10px 24px;display:flex;gap:10px;align-items:center;}
   #toolbar .spacer{flex:1;}
   #toolbar .status{font-size:12px;color:#777;}
+
+  /* ---------- Login ---------- */
+  #loginOverlay{position:fixed;inset:0;background:#e9ebee;display:flex;align-items:center;justify-content:center;z-index:50;}
+  #loginBox{background:#fff;border:1px solid var(--panel-border);border-radius:10px;padding:28px;width:300px;box-shadow:0 4px 24px rgba(0,0,0,.1);}
+  #loginBox h1{font-size:16px;margin:0 0 16px;}
+  #loginBox label{display:block;font-size:12px;margin:10px 0 3px;color:#444;}
+  #loginBox input{width:100%;padding:8px;border:1px solid var(--panel-border);border-radius:5px;font-size:13px;}
+  #loginBox button{width:100%;margin-top:16px;}
+  #loginError{color:var(--danger);font-size:12px;margin-top:8px;min-height:1.2em;}
 </style>
 </head>
 <body>
-<div id="app">
+<div id="loginOverlay">
+  <div id="loginBox">
+    <h1>🧾 Aktionsblatt-Generator – Login</h1>
+    <form id="loginForm">
+      <label>E-Mail</label>
+      <input type="email" id="loginEmail" required autocomplete="username">
+      <label>Passwort</label>
+      <input type="password" id="loginPassword" required autocomplete="current-password">
+      <button type="submit">Anmelden</button>
+      <div id="loginError"></div>
+    </form>
+  </div>
+</div>
+<div id="app" style="display:none;">
 
   <aside id="sidebar">
     <h1>🧾 Aktionsblatt-Generator</h1>
@@ -242,6 +265,7 @@
       <button id="btnPng">🖼️ Als PNG speichern</button>
       <span class="spacer"></span>
       <span class="status" id="statusText">Noch keine Daten geladen.</span>
+      <button class="secondary small" id="btnLogout">Abmelden</button>
     </div>
     <div id="stage"></div>
   </main>
@@ -303,58 +327,40 @@ function stripDriveLetter(p){
   return String(p||'').replace(/^[a-zA-Z]:[\\/]/, '');
 }
 
-/* ---- Bilder-Datenbank (IndexedDB): merkt sich hochgeladene Bilder dauerhaft im Browser ---- */
-const IMG_DB_NAME = 'aktionapp-images';
-const IMG_STORE = 'images';
-function openImgDB(){
-  return new Promise((resolve,reject)=>{
-    const req = indexedDB.open(IMG_DB_NAME, 1);
-    req.onupgradeneeded = ()=>{
-      const db = req.result;
-      if(!db.objectStoreNames.contains(IMG_STORE)) db.createObjectStore(IMG_STORE, {keyPath:'relNorm'});
-    };
-    req.onsuccess = ()=> resolve(req.result);
-    req.onerror = ()=> reject(req.error);
-  });
-}
-async function clearImgDB(){
-  try{
-    const db = await openImgDB();
-    await new Promise((resolve,reject)=>{
-      const tx = db.transaction(IMG_STORE,'readwrite');
-      tx.objectStore(IMG_STORE).clear();
-      tx.oncomplete = resolve; tx.onerror = ()=>reject(tx.error);
-    });
-  }catch(e){}
-}
-async function putImages(entries){
-  try{
-    const db = await openImgDB();
-    await new Promise((resolve,reject)=>{
-      const tx = db.transaction(IMG_STORE,'readwrite');
-      const store = tx.objectStore(IMG_STORE);
-      entries.forEach(en=> store.put(en));
-      tx.oncomplete = resolve; tx.onerror = ()=>reject(tx.error);
-    });
-  }catch(e){}
-}
-async function getAllImages(){
-  try{
-    const db = await openImgDB();
-    return await new Promise((resolve,reject)=>{
-      const tx = db.transaction(IMG_STORE,'readonly');
-      const req = tx.objectStore(IMG_STORE).getAll();
-      req.onsuccess = ()=> resolve(req.result || []);
-      req.onerror = ()=> reject(req.error);
-    });
-  }catch(e){ return []; }
-}
-async function loadImageIndexFromDB(){
-  const all = await getAllImages();
-  if(all.length){
-    folderFileIndex = all;
-    setStatus(all.length + ' Bilder aus der Bilder-Datenbank geladen.');
+/* ---- Bilder-Cloud (Supabase Storage): Bilder liegen zentral, von jedem Gerät abrufbar ---- */
+const SUPABASE_URL = 'https://wkovopovdcnjvhfkxkvg.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_8hd0v-MQPgBLcm8Tclk4Tg_1MZ64f9F';
+const BUCKET = 'produktbilder';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+async function listAllFiles(prefix){
+  prefix = prefix || '';
+  const { data, error } = await sb.storage.from(BUCKET).list(prefix, {limit:1000});
+  if(error || !data) return [];
+  let results = [];
+  for(const entry of data){
+    const full = prefix ? prefix+'/'+entry.name : entry.name;
+    if(entry.id === null){
+      const sub = await listAllFiles(full);
+      results = results.concat(sub);
+    } else if(/\.(png|jpe?g|webp|gif|bmp)$/i.test(entry.name)){
+      results.push(full);
+    }
   }
+  return results;
+}
+
+async function loadImageIndexFromCloud(){
+  setStatus('Lade Bilder-Übersicht aus der Cloud…');
+  const paths = await listAllFiles('');
+  folderFileIndex = paths.map(p=>{
+    const relNorm = normalize(p.replace(/\.[^.]+$/,''));
+    const baseNorm = normalize(basename(p).replace(/\.[^.]+$/,''));
+    const { data } = sb.storage.from(BUCKET).getPublicUrl(p);
+    return { relNorm, baseNorm, relPath:p, dataUrl: data.publicUrl };
+  });
+  setStatus(folderFileIndex.length + ' Bilder aus der Cloud geladen.');
+  if(state.products.length){ await autoMatchImages(); renderPages(); }
 }
 function detectBundle(packText, nameText){
   const text = (packText||'') + ' ' + (nameText||'');
@@ -367,6 +373,7 @@ function removeWhiteBackground(dataUrl, tolerance){
   tolerance = tolerance===undefined ? 26 : tolerance;
   return new Promise((resolve, reject)=>{
     const img = new Image();
+    img.crossOrigin = 'anonymous';
     img.onload = ()=>{
       try{
         const w = img.naturalWidth, h = img.naturalHeight;
@@ -507,25 +514,22 @@ document.getElementById('btnPickFolder').addEventListener('click', ()=> document
 document.getElementById('folderInput').addEventListener('change', async (e)=>{
   const files = Array.from(e.target.files).filter(f=>/\.(png|jpe?g|webp|gif|bmp)$/i.test(f.name));
   if(!files.length) return;
-  setStatus('Lese 0 von ' + files.length + ' Bildern…');
-  await clearImgDB();
-  const entries = [];
+  setStatus('Räume alte Bilder in der Cloud auf…');
+  const oldPaths = await listAllFiles('');
+  for(let i=0;i<oldPaths.length;i+=100){
+    await sb.storage.from(BUCKET).remove(oldPaths.slice(i,i+100));
+  }
   for(let i=0;i<files.length;i++){
     const f = files[i];
     const rel = f.webkitRelativePath || f.name;
     const relAfterRoot = rel.split('/').slice(1).join('/') || rel; // Name des gewählten Ordners selbst abschneiden
-    const relNorm = normalize(relAfterRoot.replace(/\.[^.]+$/,''));
-    const baseNorm = normalize(f.name.replace(/\.[^.]+$/,''));
-    const dataUrl = await fileToDataUrl(f);
-    entries.push({relNorm, baseNorm, relPath: relAfterRoot, dataUrl});
-    if(i % 15 === 0) setStatus('Lese ' + (i+1) + ' von ' + files.length + ' Bildern…');
+    setStatus('Lade Bild ' + (i+1) + ' von ' + files.length + ' hoch… (' + relAfterRoot + ')');
+    const { error } = await sb.storage.from(BUCKET).upload(relAfterRoot, f, {upsert:true, contentType: f.type || 'image/png'});
+    if(error) console.error('Upload-Fehler bei', relAfterRoot, error);
   }
-  await putImages(entries);
-  folderFileIndex = entries;
   // jeder neue Ordner ersetzt komplett: automatisch zugeordnete Bilder werden verworfen und neu gesucht
   state.products.forEach(p=>{ if(p.imgSource!=='manual'){ p.imgData=null; p.imgSource='none'; } });
-  setStatus(files.length + ' Bilder in der Bilder-Datenbank gespeichert (bleibt auch nach Neuladen erhalten).');
-  await autoMatchImages();
+  await loadImageIndexFromCloud();
   renderPages();
 });
 
@@ -890,7 +894,7 @@ function renderCard(p){
     syncDomToState();
     card.classList.add('exporting');
     try{
-      const canvas = await html2canvas(card, {scale:3, backgroundColor:null});
+      const canvas = await html2canvas(card, {scale:3, backgroundColor:null, useCORS:true});
       const a = document.createElement('a');
       a.href = canvas.toDataURL('image/png');
       a.download = (p.name||'produkt').replace(/[^a-z0-9äöüß \-]/gi,'').trim().replace(/\s+/g,'-') + '.png';
@@ -985,9 +989,32 @@ document.getElementById('btnPng').addEventListener('click', async ()=>{
   document.body.classList.remove('exporting');
 });
 
+/* ============================= AUTH ============================= */
+function showLogin(){
+  document.getElementById('loginOverlay').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+}
+function showApp(){
+  document.getElementById('loginOverlay').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  loadImageIndexFromCloud();
+}
+document.getElementById('loginForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  errEl.textContent = '';
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  if(error){ errEl.textContent = 'Login fehlgeschlagen: ' + error.message; }
+});
+document.getElementById('btnLogout').addEventListener('click', ()=> sb.auth.signOut());
+sb.auth.onAuthStateChange((event, session)=>{
+  if(session) showApp(); else showLogin();
+});
+
 /* ============================= INIT ============================= */
 renderPages();
-loadImageIndexFromDB();
 </script>
 </body>
 </html>
