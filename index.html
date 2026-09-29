@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aktionsblatt-Generator</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  :root{
+    --orange:#f7941e; --orange-dark:#e8720c; --ink:#2b2320; --panel-bg:#f4f5f7;
+    --panel-border:#dcdfe4; --card-bg:#fff; --danger:#c0392b;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#e9ebee;color:var(--ink);}
+  #app{display:flex;min-height:100vh;}
+
+  /* ---------- Sidebar ---------- */
+  #sidebar{width:340px;flex:0 0 340px;background:var(--panel-bg);border-right:1px solid var(--panel-border);
+    padding:16px;overflow-y:auto;height:100vh;position:sticky;top:0;}
+  #sidebar h1{font-size:16px;margin:0 0 12px;}
+  .section{background:#fff;border:1px solid var(--panel-border);border-radius:8px;padding:12px;margin-bottom:12px;}
+  .section h2{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#666;margin:0 0 8px;}
+  .section label{display:block;font-size:12px;margin:8px 0 3px;color:#444;}
+  .section input[type=text], .section input[type=number], .section textarea, .section select{
+    width:100%;padding:6px 8px;border:1px solid var(--panel-border);border-radius:5px;font-size:13px;font-family:inherit;}
+  .section textarea{min-height:70px;resize:vertical;font-family:ui-monospace,monospace;font-size:11px;}
+  .row{display:flex;gap:8px;}
+  .row > *{flex:1;}
+  button{cursor:pointer;border:0;border-radius:6px;padding:8px 10px;font-size:13px;font-weight:600;background:var(--orange);color:#fff;}
+  button:hover{background:var(--orange-dark);}
+  button.secondary{background:#eee;color:#333;}
+  button.secondary:hover{background:#ddd;}
+  button.small{padding:4px 8px;font-size:11px;}
+  button.block{width:100%;margin-top:6px;}
+  .hint{font-size:11px;color:#888;margin-top:4px;line-height:1.4;}
+  .file-drop{border:2px dashed var(--panel-border);border-radius:6px;padding:10px;text-align:center;font-size:12px;color:#777;margin-top:6px;cursor:pointer;}
+  .file-drop:hover{border-color:var(--orange);color:var(--orange-dark);}
+  .mapping-row{display:flex;align-items:center;gap:6px;margin:4px 0;font-size:12px;}
+  .mapping-row span{width:110px;flex:0 0 110px;color:#444;}
+  .mapping-row select{flex:1;}
+  #unmatchedList{margin-top:6px;max-height:160px;overflow-y:auto;}
+  .unmatched-item{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:4px 0;border-bottom:1px solid #eee;font-size:12px;}
+  .unmatched-item button{padding:3px 7px;font-size:11px;}
+  .match-status{font-size:11px;color:#2a8f4f;}
+  .match-status.none{color:var(--danger);}
+  #logoPreview, #logo2Preview, #bgPreview{max-width:100%;max-height:50px;display:block;margin-top:4px;}
+  #bgPreview{max-height:70px;}
+
+  /* ---------- Preview / pages ---------- */
+  #stage{flex:1;padding:24px;overflow:auto;display:flex;flex-direction:column;align-items:center;gap:28px;}
+  .page{
+    width:210mm;min-height:297mm;background:#fff;box-shadow:0 2px 14px rgba(0,0,0,.18);
+    position:relative;overflow:hidden;display:flex;flex-direction:column;
+  }
+  .page-header{
+    position:relative;padding:14px 24px 26px;color:#fff;
+    background:linear-gradient(135deg,var(--orange) 0%,var(--orange-dark) 100%);
+    display:flex;align-items:center;justify-content:space-between;gap:14px;
+  }
+  .page-header .logo1{height:46px;object-fit:contain;background:#fff9f0;border-radius:10px;padding:4px 10px;cursor:pointer;}
+  .page-header .headline{text-align:center;flex:1;}
+  .page-header .headline .kicker{font-size:11px;letter-spacing:.18em;font-weight:700;text-transform:uppercase;opacity:.9;}
+  .page-header .headline .title{font-size:34px;font-weight:800;font-style:italic;letter-spacing:.01em;margin-top:2px;outline:none;}
+  .page-header .validity{background:#fff9f0;color:var(--ink);border-radius:10px;padding:8px 14px;font-size:11px;font-weight:700;text-align:center;min-width:130px;outline:none;}
+  .page-header .validity .lbl{font-size:9px;letter-spacing:.06em;color:#888;display:block;margin-bottom:3px;}
+
+  .cards-wrap{flex:1;padding:18px 20px;display:grid;gap:14px;align-content:start;}
+
+  .card{
+    background:var(--card-bg);border:1px solid #e7e2da;border-radius:14px;padding:12px;position:relative;
+    display:flex;flex-direction:column;
+  }
+  .card .badge{
+    position:absolute;top:-8px;left:10px;background:#ffd23f;color:#5a3d00;font-size:10px;font-weight:800;
+    padding:4px 8px;border-radius:6px;outline:none;box-shadow:0 1px 3px rgba(0,0,0,.15);
+  }
+  .card .deposit{position:absolute;top:8px;right:10px;font-size:16px;}
+  .card .img-wrap{
+    background:#faf8f5;border-radius:10px;display:flex;align-items:center;justify-content:center;
+    overflow:hidden;cursor:pointer;position:relative;margin-bottom:8px;
+  }
+  .card .img-wrap img{width:100%;height:100%;object-fit:contain;}
+  .card .img-wrap .placeholder{font-size:11px;color:#aaa;text-align:center;padding:8px;}
+  .card .img-wrap .img-resize{position:absolute;bottom:2px;right:2px;width:14px;height:14px;background:rgba(0,0,0,.25);
+    border-radius:3px;cursor:ns-resize;}
+  .card .name{font-size:13px;font-weight:700;line-height:1.25;outline:none;min-height:1.4em;}
+  .card .pack{font-size:10px;color:#888;margin-top:2px;outline:none;}
+  .card .price-row{margin-top:auto;padding-top:8px;display:flex;align-items:baseline;justify-content:space-between;gap:6px;}
+  .card .old-price{font-size:12px;color:#999;text-decoration:line-through;outline:none;}
+  .card .new-price{font-size:22px;font-weight:800;color:var(--orange-dark);outline:none;}
+  .card .unit-note{font-size:9px;color:#999;display:block;text-align:right;}
+  .card .resize-handle{position:absolute;bottom:2px;right:2px;width:12px;height:12px;cursor:nwse-resize;
+    border-right:3px solid #ccc;border-bottom:3px solid #ccc;}
+  .card .remove-card{position:absolute;top:-8px;right:-8px;width:20px;height:20px;border-radius:50%;background:var(--danger);
+    color:#fff;font-size:12px;line-height:20px;text-align:center;padding:0;display:none;}
+  .card:hover .remove-card{display:block;}
+
+  .page-footer{background:#2b2320;color:#eee;font-size:10px;padding:10px 24px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+  .page-footer img{height:26px;}
+  .page-footer .foot-text{flex:1;outline:none;min-width:160px;}
+  .page-footer .legal{width:100%;font-size:9px;color:#bbb;outline:none;}
+
+  .exporting .resize-handle, .exporting .img-resize, .exporting .remove-card{display:none !important;}
+
+  @media print{
+    #sidebar, #toolbar{display:none !important;}
+    #stage{padding:0;gap:0;display:block;}
+    body{background:#fff;}
+    .page{box-shadow:none;margin:0;page-break-after:always;width:210mm;min-height:297mm;}
+    .resize-handle, .img-resize, .remove-card{display:none !important;}
+    @page{size:A4;margin:0;}
+  }
+  #toolbar{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid var(--panel-border);
+    padding:10px 24px;display:flex;gap:10px;align-items:center;}
+  #toolbar .spacer{flex:1;}
+  #toolbar .status{font-size:12px;color:#777;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <aside id="sidebar">
+    <h1>🧾 Aktionsblatt-Generator</h1>
+
+    <div class="section">
+      <h2>1. Daten einfügen</h2>
+      <label>Export aus Excel/Tabelle einfügen (mit Tab getrennt, erste Zeile = Spaltennamen)</label>
+      <textarea id="pasteArea" placeholder="Artikelbezeichnung&#9;Gebinde&#9;Alter Preis&#9;Aktionspreis&#9;Pfand&#9;Artikelnummer"></textarea>
+      <button class="block" id="btnParse">Daten übernehmen</button>
+      <div id="mappingBox" style="display:none;margin-top:8px;">
+        <div class="hint">Spalten zuordnen:</div>
+        <div id="mappingRows"></div>
+        <button class="block" id="btnApplyMapping">Zuordnung anwenden</button>
+      </div>
+      <div class="hint">Fehlende Angaben werden einfach weggelassen, nichts wird erfunden.</div>
+    </div>
+
+    <div class="section">
+      <h2>2. Bilder</h2>
+      <button class="block" id="btnPickFolder">📁 Bilder-Ordner wählen (z. B. OneDrive → Bilder)</button>
+      <div class="hint">Ordner wird nur in diesem Browser gelesen. Bilder werden automatisch per Dateiname / Artikelnummer den Produkten zugeordnet.</div>
+      <input type="file" id="folderInput" webkitdirectory multiple style="display:none;">
+      <input type="file" id="singleImageInput" accept="image/*" style="display:none;">
+      <div id="unmatchedList"></div>
+    </div>
+
+    <div class="section">
+      <h2>3. Kopfzeile</h2>
+      <label>Logo 1</label>
+      <div class="file-drop" id="logo1Drop">Klicken zum Ändern</div>
+      <img id="logoPreview" src="assets/logo1-default.svg">
+      <input type="file" id="logo1Input" accept="image/*" style="display:none;">
+      <label>Kicker-Text (klein, oben)</label>
+      <input type="text" id="kickerInput" value="ABHOLUNG UND LIEFERUNG">
+      <label>Titel</label>
+      <input type="text" id="titleInput" value="Aktion">
+      <label>Gültigkeitszeitraum</label>
+      <input type="text" id="validityInput" value="–">
+    </div>
+
+    <div class="section">
+      <h2>4. Hintergrund &amp; Farben</h2>
+      <label>Hintergrundbild Kopfzeile (optional)</label>
+      <div class="file-drop" id="bgDrop">Klicken zum Auswählen</div>
+      <img id="bgPreview" style="display:none;">
+      <button class="secondary small" id="btnClearBg" style="margin-top:6px;">Hintergrundbild entfernen</button>
+      <input type="file" id="bgInput" accept="image/*" style="display:none;">
+      <label>Akzentfarbe</label>
+      <input type="text" id="accentInput" value="#f7941e">
+    </div>
+
+    <div class="section">
+      <h2>5. Layout</h2>
+      <label>Spalten pro Seite</label>
+      <select id="colsInput"><option value="1">1</option><option value="2" selected>2</option><option value="3">3</option></select>
+      <label>Karten pro Seite</label>
+      <input type="number" id="perPageInput" value="6" min="1" max="12">
+      <label>Kartengröße (%)</label>
+      <input type="number" id="cardSizeInput" value="100" min="50" max="150">
+      <label>Produktbild-Höhe (%)</label>
+      <input type="number" id="imgSizeInput" value="100" min="40" max="200">
+      <button class="block secondary" id="btnApplyLayout">Auf alle Karten anwenden</button>
+      <div class="hint">Einzelne Karten lassen sich zusätzlich direkt am Eck-Griff in der Vorschau ziehen.</div>
+    </div>
+
+    <div class="section">
+      <h2>6. Fußzeile</h2>
+      <label>Logo 2 (optional)</label>
+      <div class="file-drop" id="logo2Drop">Klicken zum Ändern</div>
+      <img id="logo2Preview" src="assets/logo2-default.png">
+      <input type="file" id="logo2Input" accept="image/*" style="display:none;">
+      <label>Firmentext (Adresse, Tel, E-Mail, Web)</label>
+      <input type="text" id="footTextInput" value="G.A.B GmbH · IZ NÖ-Süd Straße 14, 37B Obj. 37B A-2351 Wiener Neudorf ÖSTERREICH · Tel. +43 2236 50 60 65 · office@global-produktion.com · www.gab.karga.uk">
+      <label>Kleingedrucktes</label>
+      <input type="text" id="legalInput" value="Druckfehler vorbehalten. Alle Preise netto exkl. MwSt. Solange der Vorrat reicht.">
+    </div>
+
+    <div class="section">
+      <h2>7. Vorlage</h2>
+      <div class="row">
+        <button class="secondary" id="btnSaveTemplate">Speichern</button>
+        <button class="secondary" id="btnLoadTemplate">Laden</button>
+      </div>
+      <input type="file" id="templateInput" accept="application/json" style="display:none;">
+      <button class="block secondary" id="btnAddCard">+ Leere Karte hinzufügen</button>
+    </div>
+  </aside>
+
+  <main style="flex:1;display:flex;flex-direction:column;">
+    <div id="toolbar">
+      <button id="btnPrint">🖨️ Als PDF drucken</button>
+      <button id="btnPng">🖼️ Als PNG speichern</button>
+      <span class="spacer"></span>
+      <span class="status" id="statusText">Noch keine Daten geladen.</span>
+    </div>
+    <div id="stage"></div>
+  </main>
+
+</div>
+
+<script>
+/* ============================= STATE ============================= */
+const state = {
+  brand: { logo1: 'assets/logo1-default.svg', logo2: 'assets/logo2-default.png', bg: null, accent: '#f7941e' },
+  header: { kicker: 'ABHOLUNG UND LIEFERUNG', title: 'Aktion', validity: '–' },
+  footer: { text: 'G.A.B GmbH · IZ NÖ-Süd Straße 14, 37B Obj. 37B A-2351 Wiener Neudorf ÖSTERREICH · Tel. +43 2236 50 60 65 · office@global-produktion.com · www.gab.karga.uk',
+            legal: 'Druckfehler vorbehalten. Alle Preise netto exkl. MwSt. Solange der Vorrat reicht.' },
+  layout: { cols: 2, perPage: 6, cardSize: 100, imgSize: 100 },
+  products: [] // {id,name,pack,oldPrice,newPrice,unit,deposit,badge,ref,imgData,imgSource,cardW,cardH,imgH}
+};
+let rawRows = null; // parsed paste rows before mapping confirmed
+let folderFileIndex = []; // [{norm, file}]
+let uid = 1;
+
+/* ============================= HELPERS ============================= */
+function normalize(s){
+  return (s||'').toString().toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .replace(/[^a-z0-9]/g,'');
+}
+function euro(v){
+  if(v===undefined||v===null||v==='') return '';
+  let n = parseFloat(String(v).replace(',','.').replace(/[^0-9.\-]/g,''));
+  if(isNaN(n)) return String(v);
+  return n.toFixed(2).replace('.',',') + ' €';
+}
+function parseNum(v){
+  if(v===undefined||v===null||v==='') return null;
+  let n = parseFloat(String(v).replace(',','.').replace(/[^0-9.\-]/g,''));
+  return isNaN(n) ? null : n;
+}
+function parseBool(v){
+  if(v===undefined||v===null) return false;
+  const s = String(v).trim().toLowerCase();
+  return ['ja','yes','true','1','x','pfand'].includes(s);
+}
+function setStatus(t){ document.getElementById('statusText').textContent = t; }
+function fileToDataUrl(file){
+  return new Promise((res,rej)=>{
+    const r = new FileReader();
+    r.onload = ()=>res(r.result);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+
+/* ============================= PASTE / MAPPING ============================= */
+document.getElementById('btnParse').addEventListener('click', ()=>{
+  const raw = document.getElementById('pasteArea').value.trim();
+  if(!raw){ alert('Bitte zuerst Daten einfügen.'); return; }
+  const lines = raw.split(/\r?\n/).filter(l=>l.trim().length);
+  const sep = lines[0].includes('\t') ? '\t' : (lines[0].includes(';') ? ';' : ',');
+  const headers = lines[0].split(sep).map(h=>h.trim());
+  const rows = lines.slice(1).map(l=>l.split(sep));
+  rawRows = { headers, rows };
+  buildMappingUI(headers);
+});
+
+const FIELD_DEFS = [
+  {key:'name', label:'Bezeichnung', guesses:['artikelbezeichnung','bezeichnung','produktname','name','artikel','produkt']},
+  {key:'pack', label:'Gebinde', guesses:['gebinde','packungsgroesse','inhalt','pack','menge']},
+  {key:'oldPrice', label:'Alter Preis', guesses:['alterpreis','altpreis','vorherigerpreis','vorher','ueblicherpreis','regulaerpreis','alt']},
+  {key:'newPrice', label:'Aktionspreis', guesses:['aktionspreis','angebotspreis','neuerpreis','verkaufspreis','aktion','angebot','neu','preis']},
+  {key:'deposit', label:'Pfand', guesses:['pfand']},
+  {key:'badge', label:'Rabatt-Text (optional)', guesses:['rabatttext','rabatt','badge']},
+  {key:'ref', label:'Artikelnr./EAN (für Bildsuche)', guesses:['artikelnummer','artikelnr','ean','sku','artikelcode','nr']},
+];
+
+function guessColumn(headers, guesses, taken){
+  for(const g of guesses){
+    const idx = headers.findIndex((h,i)=> !taken.has(i) && normalize(h).includes(g));
+    if(idx>=0) return idx;
+  }
+  return -1;
+}
+
+function buildMappingUI(headers){
+  const box = document.getElementById('mappingRows');
+  box.innerHTML = '';
+  const taken = new Set();
+  FIELD_DEFS.forEach(f=>{
+    const row = document.createElement('div');
+    row.className = 'mapping-row';
+    const guessIdx = guessColumn(headers, f.guesses, taken);
+    if(guessIdx>=0) taken.add(guessIdx);
+    let opts = '<option value="-1">— nicht vorhanden —</option>' +
+      headers.map((h,i)=>`<option value="${i}" ${i===guessIdx?'selected':''}>${h}</option>`).join('');
+    row.innerHTML = `<span>${f.label}</span><select data-field="${f.key}">${opts}</select>`;
+    box.appendChild(row);
+  });
+  document.getElementById('mappingBox').style.display = 'block';
+}
+
+document.getElementById('btnApplyMapping').addEventListener('click', ()=>{
+  if(!rawRows) return;
+  const selects = document.querySelectorAll('#mappingRows select');
+  const map = {};
+  selects.forEach(s=> map[s.dataset.field] = parseInt(s.value,10));
+
+  const newProducts = rawRows.rows.filter(r=>r.some(c=>c && c.trim())).map(r=>{
+    const get = (k)=> (map[k]>=0 && r[map[k]]!==undefined) ? r[map[k]].trim() : '';
+    const oldP = parseNum(get('oldPrice'));
+    const newP = parseNum(get('newPrice'));
+    let badge = get('badge');
+    if(!badge && oldP!==null && newP!==null && oldP>newP){
+      badge = (oldP-newP).toFixed(2).replace('.',',') + ' € gespart';
+    }
+    return {
+      id: 'p'+(uid++),
+      name: get('name'),
+      pack: get('pack'),
+      oldPrice: oldP, newPrice: newP,
+      deposit: parseBool(get('deposit')),
+      badge: badge,
+      ref: get('ref'),
+      imgData: null, imgSource: 'none',
+      cardW: null, cardH: null, imgH: null
+    };
+  });
+
+  state.products = newProducts;
+  document.getElementById('mappingBox').style.display = 'none';
+  autoMatchImages();
+  renderPages();
+  setStatus(newProducts.length + ' Produkte geladen.');
+});
+
+/* ============================= IMAGES ============================= */
+document.getElementById('btnPickFolder').addEventListener('click', ()=> document.getElementById('folderInput').click());
+
+document.getElementById('folderInput').addEventListener('change', (e)=>{
+  const files = Array.from(e.target.files).filter(f=>/\.(png|jpe?g|webp|gif|bmp)$/i.test(f.name));
+  folderFileIndex = files.map(f=>({norm: normalize(f.name.replace(/\.[^.]+$/,'')), file: f}));
+  setStatus(files.length + ' Bilder im gewählten Ordner gefunden.');
+  autoMatchImages();
+  renderPages();
+});
+
+function findBestMatch(product){
+  if(!folderFileIndex.length) return null;
+  const refNorm = normalize(product.ref);
+  const nameNorm = normalize(product.name);
+  if(refNorm){
+    let hit = folderFileIndex.find(f=> f.norm === refNorm );
+    if(!hit) hit = folderFileIndex.find(f=> f.norm.includes(refNorm) || refNorm.includes(f.norm) );
+    if(hit) return hit;
+  }
+  if(nameNorm){
+    let hit = folderFileIndex.find(f=> f.norm === nameNorm );
+    if(!hit) hit = folderFileIndex.find(f=> nameNorm.includes(f.norm) && f.norm.length>3 );
+    if(!hit) hit = folderFileIndex.find(f=> f.norm.includes(nameNorm) && nameNorm.length>3 );
+    if(hit) return hit;
+  }
+  return null;
+}
+
+async function autoMatchImages(){
+  for(const p of state.products){
+    if(p.imgSource === 'manual') continue; // never override manual picks
+    const hit = findBestMatch(p);
+    if(hit){
+      p.imgData = await fileToDataUrl(hit.file);
+      p.imgSource = 'auto';
+    }
+  }
+  renderUnmatchedList();
+}
+
+function renderUnmatchedList(){
+  const box = document.getElementById('unmatchedList');
+  box.innerHTML = '';
+  state.products.forEach(p=>{
+    const item = document.createElement('div');
+    item.className = 'unmatched-item';
+    const statusTxt = p.imgSource==='auto' ? 'automatisch zugeordnet' : (p.imgSource==='manual' ? 'manuell gewählt' : 'kein Bild');
+    item.innerHTML = `<span>${p.name||'(ohne Namen)'}</span>
+      <span class="match-status ${p.imgSource==='none'?'none':''}">${statusTxt}</span>
+      <button class="small secondary" data-pick="${p.id}">Bild wählen</button>`;
+    box.appendChild(item);
+  });
+  box.querySelectorAll('[data-pick]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      pickImageForProductId = btn.dataset.pick;
+      document.getElementById('singleImageInput').click();
+    });
+  });
+}
+
+let pickImageForProductId = null;
+document.getElementById('singleImageInput').addEventListener('change', async (e)=>{
+  const file = e.target.files[0];
+  if(!file || !pickImageForProductId) return;
+  const p = state.products.find(p=>p.id===pickImageForProductId);
+  if(p){
+    p.imgData = await fileToDataUrl(file);
+    p.imgSource = 'manual';
+    renderPages();
+    renderUnmatchedList();
+  }
+  e.target.value = '';
+});
+
+/* ============================= HEADER / FOOTER / BRAND BINDINGS ============================= */
+function bindText(id, path){
+  document.getElementById(id).addEventListener('input', (e)=>{
+    setPath(state, path, e.target.value);
+    renderPages();
+  });
+}
+function setPath(obj, path, val){
+  const parts = path.split('.');
+  let o = obj;
+  for(let i=0;i<parts.length-1;i++) o = o[parts[i]];
+  o[parts[parts.length-1]] = val;
+}
+bindText('kickerInput','header.kicker');
+bindText('titleInput','header.title');
+bindText('validityInput','header.validity');
+bindText('footTextInput','footer.text');
+bindText('legalInput','footer.legal');
+bindText('accentInput','brand.accent');
+document.getElementById('accentInput').addEventListener('input', e=>{
+  document.documentElement.style.setProperty('--orange', e.target.value);
+});
+
+function setupImageSwap(dropId, inputId, previewId, statePath, callback){
+  const drop = document.getElementById(dropId);
+  const input = document.getElementById(inputId);
+  drop.addEventListener('click', ()=> input.click());
+  input.addEventListener('change', async ()=>{
+    const file = input.files[0];
+    if(!file) return;
+    const url = await fileToDataUrl(file);
+    setPath(state, statePath, url);
+    const prev = document.getElementById(previewId);
+    if(prev){ prev.src = url; prev.style.display='block'; }
+    if(callback) callback(url);
+    renderPages();
+  });
+}
+setupImageSwap('logo1Drop','logo1Input','logoPreview','brand.logo1');
+setupImageSwap('logo2Drop','logo2Input','logo2Preview','brand.logo2');
+setupImageSwap('bgDrop','bgInput','bgPreview','brand.bg');
+
+document.getElementById('btnClearBg').addEventListener('click', ()=>{
+  state.brand.bg = null;
+  document.getElementById('bgPreview').style.display='none';
+  renderPages();
+});
+
+/* ============================= LAYOUT ============================= */
+document.getElementById('btnApplyLayout').addEventListener('click', ()=>{
+  state.layout.cols = parseInt(document.getElementById('colsInput').value,10);
+  state.layout.perPage = parseInt(document.getElementById('perPageInput').value,10);
+  state.layout.cardSize = parseInt(document.getElementById('cardSizeInput').value,10);
+  state.layout.imgSize = parseInt(document.getElementById('imgSizeInput').value,10);
+  state.products.forEach(p=>{ p.cardW=null; p.cardH=null; p.imgH=null; }); // reset per-card overrides
+  renderPages();
+});
+
+document.getElementById('btnAddCard').addEventListener('click', ()=>{
+  state.products.push({
+    id:'p'+(uid++), name:'Neues Produkt', pack:'', oldPrice:null, newPrice:null,
+    deposit:false, badge:'', ref:'', imgData:null, imgSource:'none', cardW:null, cardH:null, imgH:null
+  });
+  renderPages();
+  renderUnmatchedList();
+});
+
+/* ============================= TEMPLATE SAVE/LOAD ============================= */
+document.getElementById('btnSaveTemplate').addEventListener('click', ()=>{
+  syncDomToState();
+  const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'aktion-vorlage-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+});
+document.getElementById('btnLoadTemplate').addEventListener('click', ()=> document.getElementById('templateInput').click());
+document.getElementById('templateInput').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const r = new FileReader();
+  r.onload = ()=>{
+    try{
+      const loaded = JSON.parse(r.result);
+      Object.assign(state, loaded);
+      document.getElementById('kickerInput').value = state.header.kicker;
+      document.getElementById('titleInput').value = state.header.title;
+      document.getElementById('validityInput').value = state.header.validity;
+      document.getElementById('footTextInput').value = state.footer.text;
+      document.getElementById('legalInput').value = state.footer.legal;
+      document.getElementById('accentInput').value = state.brand.accent;
+      document.documentElement.style.setProperty('--orange', state.brand.accent);
+      if(state.brand.logo1) document.getElementById('logoPreview').src = state.brand.logo1;
+      if(state.brand.logo2) document.getElementById('logo2Preview').src = state.brand.logo2;
+      if(state.brand.bg){ document.getElementById('bgPreview').src=state.brand.bg; document.getElementById('bgPreview').style.display='block'; }
+      renderPages();
+      renderUnmatchedList();
+      setStatus('Vorlage geladen: ' + (state.products||[]).length + ' Produkte.');
+    }catch(err){ alert('Datei konnte nicht gelesen werden.'); }
+  };
+  r.readAsText(file);
+  e.target.value='';
+});
+
+/* ============================= RENDER ============================= */
+function syncDomToState(){
+  document.querySelectorAll('.card').forEach(cardEl=>{
+    const p = state.products.find(p=>p.id===cardEl.dataset.id);
+    if(!p) return;
+    const nameEl = cardEl.querySelector('.name');
+    const packEl = cardEl.querySelector('.pack');
+    const oldEl = cardEl.querySelector('.old-price');
+    const newEl = cardEl.querySelector('.new-price');
+    const badgeEl = cardEl.querySelector('.badge');
+    if(nameEl) p.name = nameEl.textContent.trim();
+    if(packEl) p.pack = packEl.textContent.trim();
+    if(newEl) p.newPrice = parseNum(newEl.textContent);
+    if(oldEl) p.oldPrice = parseNum(oldEl.textContent);
+    if(badgeEl) p.badge = badgeEl.textContent.trim();
+  });
+  const headEls = document.querySelectorAll('.page-header .title');
+  if(headEls[0]) state.header.title = headEls[0].textContent.trim();
+  const valEls = document.querySelectorAll('.page-header .validity .val');
+  if(valEls[0]) state.header.validity = valEls[0].textContent.trim();
+  const footEls = document.querySelectorAll('.page-footer .foot-text');
+  if(footEls[0]) state.footer.text = footEls[0].textContent.trim();
+  const legalEls = document.querySelectorAll('.page-footer .legal');
+  if(legalEls[0]) state.footer.legal = legalEls[0].textContent.trim();
+}
+
+function renderPages(){
+  syncDomToState();
+  const stage = document.getElementById('stage');
+  stage.innerHTML = '';
+  const perPage = Math.max(1, state.layout.perPage || 6);
+  const products = state.products;
+  const pageCount = Math.max(1, Math.ceil(products.length / perPage));
+
+  for(let pi=0; pi<pageCount; pi++){
+    const pageProducts = products.slice(pi*perPage, (pi+1)*perPage);
+    const page = document.createElement('div');
+    page.className = 'page';
+
+    // header
+    const header = document.createElement('div');
+    header.className = 'page-header';
+    if(state.brand.bg){ header.style.backgroundImage = `linear-gradient(135deg, rgba(247,148,30,.75), rgba(232,114,12,.85)), url(${state.brand.bg})`; header.style.backgroundSize='cover'; header.style.backgroundPosition='center'; }
+    header.innerHTML = `
+      <img class="logo1" src="${state.brand.logo1||''}" title="Klicken um Logo zu ändern">
+      <div class="headline">
+        <div class="kicker">${escapeHtml(state.header.kicker)}</div>
+        <div class="title" contenteditable="true" spellcheck="false">${escapeHtml(state.header.title)}</div>
+      </div>
+      <div class="validity">
+        <span class="lbl">GÜLTIGKEITSZEITRAUM</span>
+        <span class="val" contenteditable="true" spellcheck="false">${escapeHtml(state.header.validity)}</span>
+      </div>
+    `;
+    header.querySelector('.logo1').addEventListener('click', ()=> document.getElementById('logo1Input').click());
+    page.appendChild(header);
+
+    // cards
+    const wrap = document.createElement('div');
+    wrap.className = 'cards-wrap';
+    wrap.style.gridTemplateColumns = `repeat(${state.layout.cols}, 1fr)`;
+    pageProducts.forEach(p=> wrap.appendChild(renderCard(p)) );
+    page.appendChild(wrap);
+
+    // footer
+    const footer = document.createElement('div');
+    footer.className = 'page-footer';
+    footer.innerHTML = `
+      <img src="${state.brand.logo2||''}" title="Klicken um Logo zu ändern">
+      <div class="foot-text" contenteditable="true" spellcheck="false">${escapeHtml(state.footer.text)}</div>
+      <div class="legal" contenteditable="true" spellcheck="false">${escapeHtml(state.footer.legal)}</div>
+    `;
+    footer.querySelector('img').addEventListener('click', ()=> document.getElementById('logo2Input').click());
+    page.appendChild(footer);
+
+    stage.appendChild(page);
+  }
+}
+
+function escapeHtml(s){
+  return (s===undefined||s===null) ? '' : String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+}
+
+function renderCard(p){
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.dataset.id = p.id;
+  const scale = (p.cardW ? 1 : (state.layout.cardSize/100));
+  if(p.cardW){ card.style.width = p.cardW+'px'; }
+  if(p.cardH){ card.style.minHeight = p.cardH+'px'; }
+  if(!p.cardW && state.layout.cardSize !== 100){ card.style.fontSize = (state.layout.cardSize/100)+'em'; }
+
+  const imgH = p.imgH || (110 * (state.layout.imgSize/100));
+
+  card.innerHTML = `
+    ${p.badge ? `<div class="badge" contenteditable="true" spellcheck="false">${escapeHtml(p.badge)}</div>` : ''}
+    ${p.deposit ? `<div class="deposit" title="Pfandartikel">🧴</div>` : ''}
+    <div class="img-wrap" style="height:${imgH}px">
+      ${p.imgData ? `<img src="${p.imgData}">` : `<div class="placeholder">Produktbild<br>klicken zum Auswählen</div>`}
+      <div class="img-resize" title="Bildgröße ziehen"></div>
+    </div>
+    <div class="name" contenteditable="true" spellcheck="false">${escapeHtml(p.name)}</div>
+    <div class="pack" contenteditable="true" spellcheck="false">${escapeHtml(p.pack)}</div>
+    <div class="price-row">
+      <div>
+        ${p.oldPrice!==null ? `<div class="old-price" contenteditable="true" spellcheck="false">${euro(p.oldPrice)}</div>` : `<div class="old-price" contenteditable="true" spellcheck="false" style="opacity:.3"></div>`}
+        ${p.deposit ? `<span class="unit-note">zzgl. Pfand</span>` : ''}
+      </div>
+      <div class="new-price" contenteditable="true" spellcheck="false">${p.newPrice!==null ? euro(p.newPrice) : ''}</div>
+    </div>
+    <div class="resize-handle" title="Kartengröße ziehen"></div>
+    <button class="remove-card" title="Karte löschen">×</button>
+  `;
+
+  card.querySelector('.img-wrap').addEventListener('click', (e)=>{
+    if(e.target.classList.contains('img-resize')) return;
+    pickImageForProductId = p.id;
+    document.getElementById('singleImageInput').click();
+  });
+  card.querySelector('.remove-card').addEventListener('click', ()=>{
+    state.products = state.products.filter(x=>x.id!==p.id);
+    renderPages();
+    renderUnmatchedList();
+  });
+
+  makeDraggable(card.querySelector('.resize-handle'), (dx,dy)=>{
+    const rect = card.getBoundingClientRect();
+    p.cardW = Math.max(140, rect.width + dx);
+    p.cardH = Math.max(160, rect.height + dy);
+    card.style.width = p.cardW+'px';
+    card.style.minHeight = p.cardH+'px';
+  });
+  makeDraggable(card.querySelector('.img-resize'), (dx,dy)=>{
+    const imgWrap = card.querySelector('.img-wrap');
+    const rect = imgWrap.getBoundingClientRect();
+    p.imgH = Math.max(40, rect.height + dy);
+    imgWrap.style.height = p.imgH+'px';
+  });
+
+  return card;
+}
+
+function makeDraggable(handle, onMove){
+  handle.addEventListener('mousedown', (e)=>{
+    e.preventDefault(); e.stopPropagation();
+    let lastX=e.clientX, lastY=e.clientY;
+    function move(ev){
+      const dx = ev.clientX-lastX, dy = ev.clientY-lastY;
+      lastX=ev.clientX; lastY=ev.clientY;
+      onMove(dx,dy);
+    }
+    function up(){ document.removeEventListener('mousemove',move); document.removeEventListener('mouseup',up); }
+    document.addEventListener('mousemove',move);
+    document.addEventListener('mouseup',up);
+  });
+}
+
+/* ============================= EXPORT ============================= */
+document.getElementById('btnPrint').addEventListener('click', ()=>{
+  syncDomToState();
+  window.print();
+});
+
+document.getElementById('btnPng').addEventListener('click', async ()=>{
+  syncDomToState();
+  document.body.classList.add('exporting');
+  const pages = document.querySelectorAll('.page');
+  for(let i=0;i<pages.length;i++){
+    const canvas = await html2canvas(pages[i], {scale:2, useCORS:true});
+    const a = document.createElement('a');
+    a.href = canvas.toDataURL('image/png');
+    a.download = `aktion-seite-${i+1}.png`;
+    a.click();
+    await new Promise(r=>setTimeout(r,150));
+  }
+  document.body.classList.remove('exporting');
+});
+
+/* ============================= INIT ============================= */
+renderPages();
+</script>
+</body>
+</html>
