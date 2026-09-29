@@ -175,28 +175,31 @@
   #btnPng{box-shadow:0 5px 12px rgba(247,148,30,.18);}
 
   /* ---------- Login ---------- */
-  #loginOverlay{position:fixed;inset:0;background:#f2f3f5;display:flex;align-items:center;justify-content:center;z-index:50;padding:24px;overflow:auto;}
-  .login-shell{width:min(920px,100%);min-height:560px;display:grid;grid-template-columns:1.08fr .92fr;background:#fff;border:1px solid #e1e4e8;border-radius:24px;overflow:hidden;box-shadow:0 30px 80px rgba(28,31,36,.14),0 6px 20px rgba(28,31,36,.06);}
-  .login-brand{position:relative;padding:48px;color:#fff;background:radial-gradient(circle at 18% 15%,rgba(255,198,122,.28),transparent 32%),linear-gradient(145deg,#2d2723 0%,#16191e 65%,#322116 100%);overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;}
-  .login-brand::after{content:"";position:absolute;width:330px;height:330px;border:80px solid rgba(247,148,30,.12);border-radius:50%;right:-175px;bottom:-180px;}
-  .login-brand .mini-brand{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:750;letter-spacing:.02em;position:relative;z-index:1;}
-  .login-brand .mini-brand i{width:30px;height:30px;display:grid;place-items:center;border-radius:9px;background:var(--orange);font-style:normal;}
-  .login-brand-copy{position:relative;z-index:1;max-width:370px;}
-  .login-brand-copy .eyebrow{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#ffbc6a;font-weight:800;}
-  .login-brand-copy h2{font-size:38px;line-height:1.08;letter-spacing:-.035em;margin:13px 0 18px;}
-  .login-brand-copy p{font-size:14px;line-height:1.65;color:#c7c9cd;margin:0;}
-  .login-points{display:flex;gap:9px;flex-wrap:wrap;position:relative;z-index:1;}
-  .login-points span{font-size:10px;color:#e5e6e8;border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.06);padding:7px 9px;border-radius:999px;}
-  #loginBox{background:#fff;padding:58px 52px;display:flex;flex-direction:column;justify-content:center;}
-  #loginBox .login-kicker{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--orange-dark);font-weight:800;margin-bottom:10px;}
-  #loginBox h1{font-size:25px;letter-spacing:-.025em;margin:0 0 8px;}
-  #loginBox .login-subline{font-size:12px;line-height:1.5;color:var(--muted);margin:0 0 25px;}
-  #loginBox label{display:block;font-size:11px;font-weight:700;margin:12px 0 5px;color:#4b515a;}
-  #loginBox input{width:100%;padding:11px 12px;border:1px solid #d8dce2;border-radius:10px;font-size:13px;background:#fafbfc;outline:none;transition:.18s;}
+  #loginOverlay{position:fixed;inset:0;background:#fff;display:flex;z-index:50;overflow:auto;}
+  .login-shell{width:100%;min-height:100vh;min-height:100dvh;display:grid;grid-template-columns:minmax(0,1.18fr) minmax(420px,.82fr);background:#fff;overflow:hidden;}
+  .login-brand{position:relative;padding:clamp(38px,6vw,88px);color:#fff;background:radial-gradient(circle at 14% 12%,rgba(255,190,106,.3),transparent 31%),linear-gradient(145deg,#2d2723 0%,#15181d 63%,#382316 100%);overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;gap:48px;}
+  .login-brand::before{content:"";position:absolute;width:48vw;height:48vw;min-width:520px;min-height:520px;border:clamp(78px,8vw,130px) solid rgba(247,148,30,.11);border-radius:50%;right:-27vw;bottom:-30vw;}
+  .login-brand::after{content:"";position:absolute;inset:auto 7% 8% auto;width:120px;height:120px;background:radial-gradient(circle,rgba(247,148,30,.22) 1.5px,transparent 1.5px);background-size:12px 12px;opacity:.7;}
+  .login-logo{position:relative;z-index:1;align-self:flex-start;background:#fff;border-radius:14px;padding:12px 17px;box-shadow:0 12px 28px rgba(0,0,0,.2);}
+  .login-logo img{display:block;width:clamp(180px,17vw,260px);height:auto;}
+  .login-brand-copy{position:relative;z-index:1;max-width:690px;}
+  .login-brand-copy .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.17em;text-transform:uppercase;color:#ffbc6a;font-weight:800;}
+  .login-brand-copy .eyebrow::before{content:"";width:28px;height:2px;background:var(--orange);border-radius:2px;}
+  .login-brand-copy h2{font-size:clamp(44px,5vw,76px);line-height:.99;letter-spacing:-.05em;margin:19px 0 25px;max-width:760px;}
+  .login-brand-copy p{font-size:clamp(15px,1.35vw,19px);line-height:1.65;color:#d0d2d5;margin:0;max-width:610px;}
+  .login-points{display:flex;gap:10px;flex-wrap:wrap;position:relative;z-index:1;}
+  .login-points span{font-size:11px;color:#f0f1f2;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);padding:9px 12px;border-radius:999px;backdrop-filter:blur(8px);}
+  #loginBox{background:#fff;padding:clamp(42px,7vw,100px);display:flex;flex-direction:column;justify-content:center;}
+  #loginBox>*{width:min(100%,470px);margin-left:auto;margin-right:auto;}
+  #loginBox .login-kicker{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--orange-dark);font-weight:800;margin-bottom:12px;}
+  #loginBox h1{font-size:clamp(29px,3vw,42px);line-height:1.08;letter-spacing:-.035em;margin-top:0;margin-bottom:12px;}
+  #loginBox .login-subline{font-size:14px;line-height:1.6;color:var(--muted);margin-top:0;margin-bottom:28px;}
+  #loginBox label{display:block;font-size:12px;font-weight:700;margin:14px 0 6px;color:#4b515a;}
+  #loginBox input{width:100%;padding:13px 14px;border:1px solid #d8dce2;border-radius:11px;font-size:14px;background:#fafbfc;outline:none;transition:.18s;}
   #loginBox input:focus{border-color:var(--orange);background:#fff;box-shadow:0 0 0 3px rgba(247,148,30,.14);}
-  #loginBox button{width:100%;margin-top:20px;padding:11px;}
+  #loginBox button{width:100%;margin-top:22px;padding:13px;}
   #loginError{color:var(--danger);font-size:11px;margin-top:10px;min-height:1.2em;line-height:1.4;}
-  .login-foot{font-size:10px;color:#a0a5ad;text-align:center;margin-top:18px;}
+  .login-foot{font-size:10px;color:#a0a5ad;text-align:center;margin-top:20px;}
 
   @media(max-width:1050px){
     #sidebar{width:340px;flex-basis:340px;}
@@ -214,32 +217,59 @@
     #toolbar button{flex:1;}
     #btnLogout{flex:0 0 auto !important;}
     #stage{padding:20px 14px 48px;overflow-x:auto;}
-    .login-shell{grid-template-columns:1fr;min-height:0;max-width:480px;}
-    .login-brand{padding:30px;min-height:240px;}
-    .login-brand-copy h2{font-size:29px;}
+    #loginOverlay{background:#fff;}
+    .login-shell{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh;}
+    .login-brand{flex:0 0 auto;padding:22px 22px 27px;min-height:0;gap:24px;}
+    .login-brand::before{width:360px;height:360px;min-width:0;min-height:0;border-width:58px;right:-215px;bottom:-230px;}
+    .login-brand::after{display:none;}
+    .login-logo{padding:8px 11px;border-radius:10px;}
+    .login-logo img{width:145px;}
+    .login-brand-copy{max-width:none;}
+    .login-brand-copy .eyebrow{font-size:9px;}
+    .login-brand-copy .eyebrow::before{width:18px;}
+    .login-brand-copy h2{font-size:31px;line-height:1.04;margin:11px 0 10px;max-width:430px;}
+    .login-brand-copy p{font-size:12px;line-height:1.5;max-width:420px;}
     .login-points{display:none;}
-    #loginBox{padding:36px 30px;}
+    #loginBox{flex:1;padding:28px 22px 34px;justify-content:flex-start;}
+    #loginBox>*{width:100%;max-width:470px;}
+    #loginBox .login-kicker{font-size:9px;margin-bottom:8px;}
+    #loginBox h1{font-size:25px;margin-bottom:8px;}
+    #loginBox .login-subline{font-size:12px;margin-bottom:17px;}
+    #loginBox label{margin-top:11px;}
+    #loginBox input{padding:12px 13px;}
+    #loginBox button{margin-top:18px;padding:12px;}
+    .login-foot{margin-top:16px;}
+  }
+  @media(max-width:420px) and (max-height:720px){
+    .login-brand{padding-top:16px;padding-bottom:18px;gap:15px;}
+    .login-logo img{width:126px;}
+    .login-brand-copy .eyebrow{display:none;}
+    .login-brand-copy h2{font-size:26px;margin:0 0 6px;}
+    .login-brand-copy p{font-size:11px;}
+    #loginBox{padding-top:22px;}
   }
 </style>
 </head>
 <body>
 <div id="loginOverlay">
   <div class="login-shell">
-    <section class="login-brand" aria-label="AktionsStudio">
-      <div class="mini-brand"><i>↗</i> AktionsStudio</div>
+    <section class="login-brand" aria-label="mein DÖNER Aktionsblatt-Generator">
+      <div class="login-logo">
+        <img src="assets/logo1-default.svg" alt="mein DÖNER Cash &amp; Carry">
+      </div>
       <div class="login-brand-copy">
-        <div class="eyebrow">Einfach. Schnell. Verkaufsstark.</div>
-        <h2>Aus Produktdaten werden starke Aktionen.</h2>
-        <p>Produkte importieren, Bilder zuordnen, Layout anpassen und das fertige Aktionsblatt direkt exportieren.</p>
+        <div class="eyebrow">Aktionsblatt-Generator</div>
+        <h2>Dein Aktionstool für starke Angebote.</h2>
+        <p>Produktdaten importieren, Bilder automatisch zuordnen und professionelle Aktionsblätter direkt als PDF oder PNG exportieren.</p>
       </div>
       <div class="login-points">
-        <span>Excel-Import</span><span>Live-Vorschau</span><span>PDF &amp; PNG</span>
+        <span>Excel- &amp; CAO-Import</span><span>Live-Vorschau</span><span>PDF &amp; PNG</span>
       </div>
     </section>
     <div id="loginBox">
-      <div class="login-kicker">Geschützter Arbeitsbereich</div>
-      <h1>Willkommen zurück</h1>
-      <p class="login-subline">Melde dich an, um dein nächstes Aktionsblatt zu erstellen.</p>
+      <div class="login-kicker">mein DÖNER · Aktionstool</div>
+      <h1>Beim Aktionstool anmelden</h1>
+      <p class="login-subline">Melde dich an und erstelle dein nächstes Aktionsblatt.</p>
       <form id="loginForm">
         <label for="loginEmail">E-Mail-Adresse</label>
         <input type="email" id="loginEmail" required autocomplete="username" placeholder="name@firma.at">
@@ -248,7 +278,7 @@
         <button type="submit">Zum Arbeitsbereich →</button>
         <div id="loginError" role="alert"></div>
       </form>
-      <div class="login-foot">Sicherer Zugang zum Aktionsblatt-Generator</div>
+      <div class="login-foot">Sicherer Zugang zum mein DÖNER Aktionsblatt-Generator</div>
     </div>
   </div>
 </div>
