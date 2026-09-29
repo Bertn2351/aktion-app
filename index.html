@@ -76,6 +76,7 @@
   .preview-meta .page-count{background:#fff;border:1px solid var(--panel-border);padding:6px 9px;border-radius:8px;box-shadow:var(--shadow-sm);}
   .empty-guide{width:min(210mm,100%);display:flex;align-items:center;gap:11px;padding:12px 14px;background:#fffaf4;border:1px solid #f4d8b7;border-radius:11px;color:#74502c;font-size:11px;line-height:1.45;}
   .empty-guide b{display:grid;place-items:center;flex:0 0 28px;height:28px;background:var(--orange);color:#fff;border-radius:8px;font-size:14px;}
+  .page-shell{width:210mm;flex:0 0 auto;}
   .page{
     width:210mm;min-height:297mm;background:#fff;box-shadow:0 22px 50px rgba(30,34,39,.15),0 4px 12px rgba(30,34,39,.09);
     position:relative;overflow:hidden;display:flex;flex-direction:column;
@@ -156,10 +157,11 @@
   .sub-price-line{font-size:9px;color:#aaa;text-align:right;margin-top:1px;}
 
   @media print{
-    #sidebar, #toolbar, .preview-meta, .empty-guide{display:none !important;}
+    #sidebar, #toolbar, #mobileNav, .preview-meta, .empty-guide{display:none !important;}
     #stage{padding:0;gap:0;display:block;}
     body{background:#fff;}
-    .page{box-shadow:none;margin:0;page-break-after:always;width:210mm;min-height:297mm;}
+    .page-shell{width:auto !important;height:auto !important;}
+    .page{box-shadow:none;margin:0;page-break-after:always;width:210mm;min-height:297mm;transform:none !important;}
     .resize-handle, .img-resize, .remove-card{display:none !important;}
     @page{size:A4;margin:0;}
   }
@@ -173,6 +175,8 @@
   #btnPrint{background:#252a31;border-color:#252a31;}
   #btnPrint:hover{background:#101318;box-shadow:0 5px 12px rgba(16,19,24,.2);}
   #btnPng{box-shadow:0 5px 12px rgba(247,148,30,.18);}
+  #mobileNav{display:none;}
+  body.exporting .page{transform:none !important;}
 
   /* ---------- Login ---------- */
   #loginOverlay{position:fixed;inset:0;background:#fff;display:flex;z-index:50;overflow:auto;}
@@ -207,16 +211,43 @@
     #stage{align-items:flex-start;}
   }
   @media(max-width:820px){
-    #app{flex-direction:column;}
-    #sidebar{position:relative;width:100%;height:auto;max-height:none;border-right:0;border-bottom:1px solid var(--panel-border);padding-bottom:12px;}
-    .sidebar-brand{position:relative;}
-    #workspace{min-height:100vh;}
-    #toolbar{top:0;flex-wrap:wrap;}
-    .toolbar-heading{width:100%;}
-    #toolbar .spacer{display:none;}
-    #toolbar button{flex:1;}
-    #btnLogout{flex:0 0 auto !important;}
-    #stage{padding:20px 14px 48px;overflow-x:auto;}
+    body{padding-bottom:70px;}
+    #app{display:block;min-height:100vh;min-height:100dvh;flex-direction:column;}
+    #sidebar{position:relative;width:100%;height:auto;max-height:none;border-right:0;border-bottom:0;padding:0 12px 20px;overflow:visible;}
+    .sidebar-brand{position:sticky;margin:0 -12px 12px;padding:12px;}
+    .brand-mark{width:34px;height:34px;border-radius:9px;}
+    .brand-copy strong{font-size:14px;}
+    .brand-copy span{font-size:10px;}
+    .workflow{margin-top:10px;}
+    .section{padding:13px;margin-bottom:9px;border-radius:12px;}
+    .section h2{cursor:pointer;margin:0;min-height:30px;user-select:none;}
+    .section h2::after{content:"−";margin-left:auto;width:25px;height:25px;border-radius:8px;background:#f3f4f6;color:#6f7580;display:grid;place-items:center;font-size:16px;font-weight:500;}
+    .section:not(.mobile-collapsed) h2{margin-bottom:12px;}
+    .section.mobile-collapsed h2::after{content:"+";}
+    .section.mobile-collapsed>:not(h2){display:none !important;}
+    .section label{font-size:12px;}
+    .section input[type=text],.section input[type=number],.section textarea,.section select{font-size:16px;padding:11px 12px;}
+    .section textarea{min-height:120px;font-size:12px;}
+    .section button{min-height:44px;font-size:12px;}
+    #workspace{display:none;min-height:100vh;min-height:100dvh;}
+    #app.mobile-preview #sidebar{display:none;}
+    #app.mobile-preview #workspace{display:flex;}
+    #toolbar{top:0;display:grid;grid-template-columns:1fr 1fr auto;gap:8px;padding:10px 12px;min-height:0;}
+    .toolbar-heading{grid-column:1/-1;width:100%;flex-direction:row;align-items:center;justify-content:space-between;}
+    .toolbar-heading strong{font-size:13px;}
+    .toolbar-heading span{font-size:9px;}
+    #toolbar .spacer,#toolbar .status{display:none;}
+    #toolbar button{min-width:0;padding:10px 7px;font-size:10px;white-space:nowrap;}
+    #btnLogout{width:38px;font-size:0 !important;padding:0 !important;}
+    #btnLogout::before{content:"↪";font-size:17px;}
+    #stage{padding:14px 14px 90px;overflow:visible;align-items:stretch;gap:14px;}
+    .preview-meta,.empty-guide{width:100%;}
+    .empty-guide{padding:10px 11px;}
+    .page-shell{align-self:center;overflow:visible;}
+    .page{transform-origin:top left;}
+    #mobileNav{position:fixed;z-index:45;left:10px;right:10px;bottom:max(10px,env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:6px;background:rgba(25,28,33,.94);border:1px solid rgba(255,255,255,.1);border-radius:15px;box-shadow:0 12px 30px rgba(20,23,28,.28);backdrop-filter:blur(18px);}
+    #mobileNav button{min-height:46px;background:transparent;color:#cfd2d7;border:0;border-radius:10px;box-shadow:none;transform:none;font-size:12px;}
+    #mobileNav button.active{background:var(--orange);color:#fff;box-shadow:0 5px 12px rgba(247,148,30,.28);}
     #loginOverlay{background:#fff;}
     .login-shell{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh;}
     .login-brand{flex:0 0 auto;padding:22px 22px 27px;min-height:0;gap:24px;}
@@ -247,6 +278,7 @@
     .login-brand-copy h2{font-size:26px;margin:0 0 6px;}
     .login-brand-copy p{font-size:11px;}
     #loginBox{padding-top:22px;}
+    #loginBox .login-foot{display:none;}
   }
 </style>
 </head>
@@ -435,6 +467,11 @@
     </div>
     <div id="stage"></div>
   </main>
+
+  <nav id="mobileNav" aria-label="Handy-Navigation">
+    <button type="button" class="active" data-mobile-view="edit" aria-pressed="true">☰ Bearbeiten</button>
+    <button type="button" data-mobile-view="preview" aria-pressed="false">▣ Vorschau</button>
+  </nav>
 
 </div>
 
@@ -1056,8 +1093,67 @@ function renderPages(){
     footer.querySelector('img').addEventListener('click', ()=> document.getElementById('logo2Input').click());
     page.appendChild(footer);
 
-    stage.appendChild(page);
+    const pageShell = document.createElement('div');
+    pageShell.className = 'page-shell';
+    pageShell.appendChild(page);
+    stage.appendChild(pageShell);
   }
+  requestAnimationFrame(fitMobilePreviews);
+}
+
+function fitMobilePreviews(){
+  const mobile = window.matchMedia('(max-width: 820px)').matches;
+  document.querySelectorAll('.page-shell').forEach(shell=>{
+    const page = shell.querySelector('.page');
+    if(!page) return;
+    page.style.transform = 'none';
+    shell.style.width = '';
+    shell.style.height = '';
+    if(!mobile) return;
+    const naturalWidth = page.offsetWidth;
+    const naturalHeight = page.scrollHeight;
+    const availableWidth = Math.max(280, window.innerWidth - 28);
+    const scale = Math.min(1, availableWidth / naturalWidth);
+    page.style.transform = `scale(${scale})`;
+    shell.style.width = Math.round(naturalWidth * scale) + 'px';
+    shell.style.height = Math.round(naturalHeight * scale) + 'px';
+  });
+}
+
+function setupMobileUI(){
+  const app = document.getElementById('app');
+  const navButtons = document.querySelectorAll('#mobileNav [data-mobile-view]');
+  navButtons.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const preview = btn.dataset.mobileView === 'preview';
+      app.classList.toggle('mobile-preview', preview);
+      navButtons.forEach(other=>{
+        const active = other === btn;
+        other.classList.toggle('active', active);
+        other.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+      if(preview) requestAnimationFrame(fitMobilePreviews);
+      window.scrollTo({top:0, behavior:'smooth'});
+    });
+  });
+  document.querySelectorAll('#sidebar .section').forEach((section,index)=>{
+    const heading = section.querySelector('h2');
+    if(!heading) return;
+    heading.setAttribute('role','button');
+    heading.setAttribute('tabindex','0');
+    heading.setAttribute('aria-expanded', index===0 ? 'true' : 'false');
+    if(index>0) section.classList.add('mobile-collapsed');
+    const toggle = ()=>{
+      if(!window.matchMedia('(max-width: 820px)').matches) return;
+      const collapsed = section.classList.toggle('mobile-collapsed');
+      heading.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    };
+    heading.addEventListener('click', toggle);
+    heading.addEventListener('keydown', e=>{
+      if(e.key==='Enter' || e.key===' '){ e.preventDefault(); toggle(); }
+    });
+  });
+  window.addEventListener('resize', ()=> requestAnimationFrame(fitMobilePreviews));
 }
 
 function hexToRgba(hex, alpha){
@@ -1278,6 +1374,7 @@ sb.auth.onAuthStateChange((event, session)=>{
 });
 
 /* ============================= INIT ============================= */
+setupMobileUI();
 renderPages();
 </script>
 </body>
