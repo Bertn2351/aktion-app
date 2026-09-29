@@ -43,8 +43,8 @@
   .unmatched-item button{padding:3px 7px;font-size:11px;}
   .match-status{font-size:11px;color:#2a8f4f;}
   .match-status.none{color:var(--danger);}
-  #logoPreview, #logo2Preview, #bgPreview{max-width:100%;max-height:50px;display:block;margin-top:4px;}
-  #bgPreview{max-height:70px;}
+  #logoPreview, #logo2Preview, #bgPreview, #pageBgPreview{max-width:100%;max-height:50px;display:block;margin-top:4px;}
+  #bgPreview, #pageBgPreview{max-height:70px;}
 
   /* ---------- Preview / pages ---------- */
   #stage{flex:1;padding:24px;overflow:auto;display:flex;flex-direction:column;align-items:center;gap:28px;}
@@ -85,22 +85,47 @@
     border-radius:3px;cursor:ns-resize;}
   .card .name{font-size:13px;font-weight:700;line-height:1.25;outline:none;min-height:1.4em;}
   .card .pack{font-size:10px;color:#888;margin-top:2px;outline:none;}
-  .card .price-row{margin-top:auto;padding-top:8px;display:flex;align-items:baseline;justify-content:space-between;gap:6px;}
+  .card .price-row{margin-top:auto;padding-top:8px;display:flex;align-items:flex-end;justify-content:space-between;gap:6px;}
   .card .old-price{font-size:12px;color:#999;text-decoration:line-through;outline:none;}
+  .card .price-new-col{text-align:right;}
+  .card .unit-price-display{font-size:22px;font-weight:800;color:var(--orange-dark);line-height:1.1;}
   .card .new-price{font-size:22px;font-weight:800;color:var(--orange-dark);outline:none;}
+  .card .unit-price-display + .new-price{font-size:12px;font-weight:700;color:#a67a3d;}
   .card .unit-note{font-size:9px;color:#999;display:block;text-align:right;}
+  .card .unit-toggle{display:none;margin-top:4px;background:none;border:none;color:#999;font-size:9px;
+    text-decoration:underline;padding:0;font-weight:600;}
+  .card:hover .unit-toggle{display:inline-block;}
   .card .resize-handle{position:absolute;bottom:2px;right:2px;width:12px;height:12px;cursor:nwse-resize;
     border-right:3px solid #ccc;border-bottom:3px solid #ccc;}
-  .card .remove-card{position:absolute;top:-8px;right:-8px;width:20px;height:20px;border-radius:50%;background:var(--danger);
-    color:#fff;font-size:12px;line-height:20px;text-align:center;padding:0;display:none;}
-  .card:hover .remove-card{display:block;}
+  .card .card-controls{position:absolute;top:-8px;right:-8px;display:none;gap:4px;}
+  .card:hover .card-controls{display:flex;}
+  .card .card-controls button{width:20px;height:20px;border-radius:50%;font-size:11px;line-height:20px;
+    text-align:center;padding:0;}
+  .card .remove-card{background:var(--danger);color:#fff;}
+  .card .save-card{background:#2b2320;color:#fff;}
+  .card .drag-handle{position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:#fff;
+    border:1px solid #ddd;border-radius:8px;padding:0 8px;font-size:9px;color:#999;cursor:grab;
+    letter-spacing:2px;line-height:15px;display:none;}
+  .card:hover .drag-handle{display:block;}
+  .card.drag-over{outline:2px dashed var(--orange);outline-offset:2px;}
+  .card .img-wrap.is-transparent{
+    background-image:linear-gradient(45deg,#eee 25%,transparent 25%),linear-gradient(-45deg,#eee 25%,transparent 25%),
+    linear-gradient(45deg,transparent 75%,#eee 75%),linear-gradient(-45deg,transparent 75%,#eee 75%);
+    background-size:16px 16px;background-position:0 0,0 8px,8px -8px,-8px 0px;background-color:#fff;
+  }
+  .card .remove-bg{position:absolute;bottom:2px;left:2px;font-size:9px;background:rgba(0,0,0,.55);color:#fff;
+    border-radius:4px;padding:2px 5px;display:none;}
+  .card .img-wrap:hover .remove-bg{display:block;}
 
   .page-footer{background:#2b2320;color:#eee;font-size:10px;padding:10px 24px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
   .page-footer img{height:26px;}
   .page-footer .foot-text{flex:1;outline:none;min-width:160px;}
   .page-footer .legal{width:100%;font-size:9px;color:#bbb;outline:none;}
 
-  .exporting .resize-handle, .exporting .img-resize, .exporting .remove-card{display:none !important;}
+  .exporting .resize-handle, .exporting .img-resize, .exporting .remove-card,
+  .exporting .card-controls, .exporting .drag-handle, .exporting .unit-toggle,
+  .exporting .remove-bg{display:none !important;}
+  .sub-price-line{font-size:9px;color:#aaa;text-align:right;margin-top:1px;}
 
   @media print{
     #sidebar, #toolbar{display:none !important;}
@@ -124,15 +149,15 @@
 
     <div class="section">
       <h2>1. Daten einfügen</h2>
-      <label>Export aus Excel/Tabelle einfügen (mit Tab getrennt, erste Zeile = Spaltennamen)</label>
-      <textarea id="pasteArea" placeholder="Artikelbezeichnung&#9;Gebinde&#9;Alter Preis&#9;Aktionspreis&#9;Pfand&#9;Artikelnummer"></textarea>
+      <label>Export aus Excel/CAO einfügen (mit Tab getrennt, erste Zeile = Spaltennamen)</label>
+      <textarea id="pasteArea" placeholder="Artikelbezeichnung&#9;Gebinde&#9;VK-Preis 1&#9;Aktionspreis VK1&#9;Pfand&#9;Artikelnummer&#9;Mengeneinheit&#9;Produktbild"></textarea>
       <button class="block" id="btnParse">Daten übernehmen</button>
       <div id="mappingBox" style="display:none;margin-top:8px;">
-        <div class="hint">Spalten zuordnen:</div>
+        <div class="hint">Spalten zuordnen (z. B. welcher VK-Preis der „Alte Preis" bzw. „Aktionspreis" ist):</div>
         <div id="mappingRows"></div>
         <button class="block" id="btnApplyMapping">Zuordnung anwenden</button>
       </div>
-      <div class="hint">Fehlende Angaben werden einfach weggelassen, nichts wird erfunden.</div>
+      <div class="hint">Fehlende Angaben werden einfach weggelassen, nichts wird erfunden. Die Zuordnung wird für gleiche Spaltennamen gemerkt.</div>
     </div>
 
     <div class="section">
@@ -163,8 +188,13 @@
       <label>Hintergrundbild Kopfzeile (optional)</label>
       <div class="file-drop" id="bgDrop">Klicken zum Auswählen</div>
       <img id="bgPreview" style="display:none;">
-      <button class="secondary small" id="btnClearBg" style="margin-top:6px;">Hintergrundbild entfernen</button>
+      <button class="secondary small" id="btnClearBg" style="margin-top:6px;">Kopfzeilen-Hintergrund entfernen</button>
       <input type="file" id="bgInput" accept="image/*" style="display:none;">
+      <label>Hintergrundbild ganze Seite (optional)</label>
+      <div class="file-drop" id="pageBgDrop">Klicken zum Auswählen</div>
+      <img id="pageBgPreview" style="display:none;">
+      <button class="secondary small" id="btnClearPageBg" style="margin-top:6px;">Seiten-Hintergrund entfernen</button>
+      <input type="file" id="pageBgInput" accept="image/*" style="display:none;">
       <label>Akzentfarbe</label>
       <input type="text" id="accentInput" value="#f7941e">
     </div>
@@ -221,16 +251,17 @@
 <script>
 /* ============================= STATE ============================= */
 const state = {
-  brand: { logo1: 'assets/logo1-default.svg', logo2: 'assets/logo2-default.png', bg: null, accent: '#f7941e' },
+  brand: { logo1: 'assets/logo1-default.svg', logo2: 'assets/logo2-default.png', bg: null, pageBg: null, accent: '#f7941e' },
   header: { kicker: 'ABHOLUNG UND LIEFERUNG', title: 'Aktion', validity: '–' },
   footer: { text: 'G.A.B GmbH · IZ NÖ-Süd Straße 14, 37B Obj. 37B A-2351 Wiener Neudorf ÖSTERREICH · Tel. +43 2236 50 60 65 · office@global-produktion.com · www.gab.karga.uk',
             legal: 'Druckfehler vorbehalten. Alle Preise netto exkl. MwSt. Solange der Vorrat reicht.' },
   layout: { cols: 2, perPage: 6, cardSize: 100, imgSize: 100 },
-  products: [] // {id,name,pack,oldPrice,newPrice,unit,deposit,badge,ref,imgData,imgSource,cardW,cardH,imgH}
+  products: [] // {id,name,pack,unit,oldPrice,newPrice,deposit,badge,ref,imgFileNorm,imgData,imgSource,transparent,bundleQty,perUnit,cardW,cardH,imgH}
 };
 let rawRows = null; // parsed paste rows before mapping confirmed
 let folderFileIndex = []; // [{norm, file}]
 let uid = 1;
+let dragSrcId = null;
 
 /* ============================= HELPERS ============================= */
 function normalize(s){
@@ -263,6 +294,61 @@ function fileToDataUrl(file){
     r.readAsDataURL(file);
   });
 }
+function basename(p){
+  if(!p) return '';
+  const parts = String(p).split(/[\\/]/);
+  return parts[parts.length-1];
+}
+function detectBundle(packText, nameText){
+  const text = (packText||'') + ' ' + (nameText||'');
+  const m = text.match(/(\d+)\s*(?:stk\.?|stück|dosen?|flaschen?)/i);
+  const qty = m ? parseInt(m[1],10) : null;
+  const isBeverage = /\d+[.,]?\d*\s?(l|ml)\b/i.test(text);
+  return { bundleQty: qty, perUnit: !!(qty && qty>1 && isBeverage) };
+}
+function removeWhiteBackground(dataUrl, tolerance){
+  tolerance = tolerance===undefined ? 26 : tolerance;
+  return new Promise((resolve, reject)=>{
+    const img = new Image();
+    img.onload = ()=>{
+      try{
+        const w = img.naturalWidth, h = img.naturalHeight;
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img,0,0);
+        const imgData = ctx.getImageData(0,0,w,h);
+        const data = imgData.data;
+        function at(x,y){ const i=(y*w+x)*4; return [data[i],data[i+1],data[i+2]]; }
+        const corners = [at(0,0), at(w-1,0), at(0,h-1), at(w-1,h-1)];
+        const bg = [0,1,2].map(c=> Math.round(corners.reduce((s,p)=>s+p[c],0)/4));
+        const visited = new Uint8Array(w*h);
+        const stack = [];
+        for(let x=0;x<w;x++){ stack.push(x,0); stack.push(x,h-1); }
+        for(let y=0;y<h;y++){ stack.push(0,y); stack.push(w-1,y); }
+        function close(x,y){
+          const i=(y*w+x)*4;
+          return Math.abs(data[i]-bg[0])<=tolerance && Math.abs(data[i+1]-bg[1])<=tolerance && Math.abs(data[i+2]-bg[2])<=tolerance;
+        }
+        while(stack.length){
+          const y = stack.pop(), x = stack.pop();
+          if(x<0||y<0||x>=w||y>=h) continue;
+          const idx = y*w+x;
+          if(visited[idx]) continue;
+          visited[idx]=1;
+          if(!close(x,y)) continue;
+          data[idx*4+3] = 0;
+          stack.push(x+1,y, x-1,y, x,y+1, x,y-1);
+        }
+        ctx.putImageData(imgData,0,0);
+        resolve(canvas.toDataURL('image/png'));
+      }catch(err){ reject(err); }
+    };
+    img.onerror = reject;
+    img.src = dataUrl;
+  });
+}
+function mappingKey(headers){ return 'aktionapp_map_' + headers.map(h=>normalize(h)).join(','); }
 
 /* ============================= PASTE / MAPPING ============================= */
 document.getElementById('btnParse').addEventListener('click', ()=>{
@@ -277,13 +363,15 @@ document.getElementById('btnParse').addEventListener('click', ()=>{
 });
 
 const FIELD_DEFS = [
-  {key:'name', label:'Bezeichnung', guesses:['artikelbezeichnung','bezeichnung','produktname','name','artikel','produkt']},
+  {key:'name', label:'Bezeichnung', guesses:['artikelbezeichnung','bezeichnung','kurztext','langtext','produktname','name','artikel','produkt']},
   {key:'pack', label:'Gebinde', guesses:['gebinde','packungsgroesse','inhalt','pack','menge']},
-  {key:'oldPrice', label:'Alter Preis', guesses:['alterpreis','altpreis','vorherigerpreis','vorher','ueblicherpreis','regulaerpreis','alt']},
-  {key:'newPrice', label:'Aktionspreis', guesses:['aktionspreis','angebotspreis','neuerpreis','verkaufspreis','aktion','angebot','neu','preis']},
+  {key:'unit', label:'Einheit (Stk/Kolli/kg...)', guesses:['mengeneinheit','verkaufseinheit','einheit','vpe']},
+  {key:'oldPrice', label:'Alter Preis (VK...)', guesses:['alterpreis','altpreis','vorherigerpreis','vorher','ueblicherpreis','regulaerpreis','vkpreis1','vk1','alt']},
+  {key:'newPrice', label:'Aktionspreis (VK...)', guesses:['aktionspreis','angebotspreis','neuerpreis','verkaufspreis','aktion','angebot','neu','preis']},
   {key:'deposit', label:'Pfand', guesses:['pfand']},
   {key:'badge', label:'Rabatt-Text (optional)', guesses:['rabatttext','rabatt','badge']},
-  {key:'ref', label:'Artikelnr./EAN (für Bildsuche)', guesses:['artikelnummer','artikelnr','ean','sku','artikelcode','nr']},
+  {key:'ref', label:'Artikelnr./EAN (für Bildsuche)', guesses:['artikelnummer','artikelnr','barcodeean','ean','sku','artikelcode','nr']},
+  {key:'imgFile', label:'Bild-Dateiname (Produktbild-Feld)', guesses:['produktbild','bilddateiname','bildpfad','bild']},
 ];
 
 function guessColumn(headers, guesses, taken){
@@ -298,10 +386,12 @@ function buildMappingUI(headers){
   const box = document.getElementById('mappingRows');
   box.innerHTML = '';
   const taken = new Set();
+  let saved = null;
+  try{ saved = JSON.parse(localStorage.getItem(mappingKey(headers)) || 'null'); }catch(e){}
   FIELD_DEFS.forEach(f=>{
     const row = document.createElement('div');
     row.className = 'mapping-row';
-    const guessIdx = guessColumn(headers, f.guesses, taken);
+    let guessIdx = (saved && saved[f.key]!==undefined && saved[f.key]>=-1) ? saved[f.key] : guessColumn(headers, f.guesses, taken);
     if(guessIdx>=0) taken.add(guessIdx);
     let opts = '<option value="-1">— nicht vorhanden —</option>' +
       headers.map((h,i)=>`<option value="${i}" ${i===guessIdx?'selected':''}>${h}</option>`).join('');
@@ -311,11 +401,12 @@ function buildMappingUI(headers){
   document.getElementById('mappingBox').style.display = 'block';
 }
 
-document.getElementById('btnApplyMapping').addEventListener('click', ()=>{
+document.getElementById('btnApplyMapping').addEventListener('click', async ()=>{
   if(!rawRows) return;
   const selects = document.querySelectorAll('#mappingRows select');
   const map = {};
   selects.forEach(s=> map[s.dataset.field] = parseInt(s.value,10));
+  try{ localStorage.setItem(mappingKey(rawRows.headers), JSON.stringify(map)); }catch(e){}
 
   const newProducts = rawRows.rows.filter(r=>r.some(c=>c && c.trim())).map(r=>{
     const get = (k)=> (map[k]>=0 && r[map[k]]!==undefined) ? r[map[k]].trim() : '';
@@ -323,24 +414,31 @@ document.getElementById('btnApplyMapping').addEventListener('click', ()=>{
     const newP = parseNum(get('newPrice'));
     let badge = get('badge');
     if(!badge && oldP!==null && newP!==null && oldP>newP){
-      badge = (oldP-newP).toFixed(2).replace('.',',') + ' € gespart';
+      const pct = Math.round((oldP-newP)/oldP*100);
+      badge = pct>0 ? ('-'+pct+'%') : '';
     }
+    const packText = get('pack');
+    const nameText = get('name');
+    const bundle = detectBundle(packText, nameText);
     return {
       id: 'p'+(uid++),
-      name: get('name'),
-      pack: get('pack'),
+      name: nameText,
+      pack: packText,
+      unit: get('unit'),
       oldPrice: oldP, newPrice: newP,
       deposit: parseBool(get('deposit')),
       badge: badge,
       ref: get('ref'),
-      imgData: null, imgSource: 'none',
+      imgFileNorm: normalize(basename(get('imgFile')).replace(/\.[^.]+$/,'')),
+      imgData: null, imgSource: 'none', transparent:false,
+      bundleQty: bundle.bundleQty, perUnit: bundle.perUnit,
       cardW: null, cardH: null, imgH: null
     };
   });
 
   state.products = newProducts;
   document.getElementById('mappingBox').style.display = 'none';
-  autoMatchImages();
+  await autoMatchImages();
   renderPages();
   setStatus(newProducts.length + ' Produkte geladen.');
 });
@@ -348,16 +446,23 @@ document.getElementById('btnApplyMapping').addEventListener('click', ()=>{
 /* ============================= IMAGES ============================= */
 document.getElementById('btnPickFolder').addEventListener('click', ()=> document.getElementById('folderInput').click());
 
-document.getElementById('folderInput').addEventListener('change', (e)=>{
+document.getElementById('folderInput').addEventListener('change', async (e)=>{
   const files = Array.from(e.target.files).filter(f=>/\.(png|jpe?g|webp|gif|bmp)$/i.test(f.name));
   folderFileIndex = files.map(f=>({norm: normalize(f.name.replace(/\.[^.]+$/,'')), file: f}));
+  // jeder neue Ordner ersetzt komplett: automatisch zugeordnete Bilder werden verworfen und neu gesucht
+  state.products.forEach(p=>{ if(p.imgSource!=='manual'){ p.imgData=null; p.imgSource='none'; } });
   setStatus(files.length + ' Bilder im gewählten Ordner gefunden.');
-  autoMatchImages();
+  await autoMatchImages();
   renderPages();
 });
 
 function findBestMatch(product){
   if(!folderFileIndex.length) return null;
+  // 1) exakter Dateiname aus dem "Produktbild"-Feld des Warenwirtschaftsprogramms
+  if(product.imgFileNorm){
+    const hit = folderFileIndex.find(f=> f.norm === product.imgFileNorm);
+    if(hit) return hit;
+  }
   const refNorm = normalize(product.ref);
   const nameNorm = normalize(product.name);
   if(refNorm){
@@ -381,6 +486,7 @@ async function autoMatchImages(){
     if(hit){
       p.imgData = await fileToDataUrl(hit.file);
       p.imgSource = 'auto';
+      p.transparent = false;
     }
   }
   renderUnmatchedList();
@@ -414,6 +520,7 @@ document.getElementById('singleImageInput').addEventListener('change', async (e)
   if(p){
     p.imgData = await fileToDataUrl(file);
     p.imgSource = 'manual';
+    p.transparent = false;
     renderPages();
     renderUnmatchedList();
   }
@@ -461,10 +568,16 @@ function setupImageSwap(dropId, inputId, previewId, statePath, callback){
 setupImageSwap('logo1Drop','logo1Input','logoPreview','brand.logo1');
 setupImageSwap('logo2Drop','logo2Input','logo2Preview','brand.logo2');
 setupImageSwap('bgDrop','bgInput','bgPreview','brand.bg');
+setupImageSwap('pageBgDrop','pageBgInput','pageBgPreview','brand.pageBg');
 
 document.getElementById('btnClearBg').addEventListener('click', ()=>{
   state.brand.bg = null;
   document.getElementById('bgPreview').style.display='none';
+  renderPages();
+});
+document.getElementById('btnClearPageBg').addEventListener('click', ()=>{
+  state.brand.pageBg = null;
+  document.getElementById('pageBgPreview').style.display='none';
   renderPages();
 });
 
@@ -480,8 +593,9 @@ document.getElementById('btnApplyLayout').addEventListener('click', ()=>{
 
 document.getElementById('btnAddCard').addEventListener('click', ()=>{
   state.products.push({
-    id:'p'+(uid++), name:'Neues Produkt', pack:'', oldPrice:null, newPrice:null,
-    deposit:false, badge:'', ref:'', imgData:null, imgSource:'none', cardW:null, cardH:null, imgH:null
+    id:'p'+(uid++), name:'Neues Produkt', pack:'', unit:'', oldPrice:null, newPrice:null,
+    deposit:false, badge:'', ref:'', imgFileNorm:'', imgData:null, imgSource:'none', transparent:false,
+    bundleQty:null, perUnit:false, cardW:null, cardH:null, imgH:null
   });
   renderPages();
   renderUnmatchedList();
@@ -515,6 +629,7 @@ document.getElementById('templateInput').addEventListener('change', (e)=>{
       if(state.brand.logo1) document.getElementById('logoPreview').src = state.brand.logo1;
       if(state.brand.logo2) document.getElementById('logo2Preview').src = state.brand.logo2;
       if(state.brand.bg){ document.getElementById('bgPreview').src=state.brand.bg; document.getElementById('bgPreview').style.display='block'; }
+      if(state.brand.pageBg){ document.getElementById('pageBgPreview').src=state.brand.pageBg; document.getElementById('pageBgPreview').style.display='block'; }
       renderPages();
       renderUnmatchedList();
       setStatus('Vorlage geladen: ' + (state.products||[]).length + ' Produkte.');
@@ -562,6 +677,11 @@ function renderPages(){
     const pageProducts = products.slice(pi*perPage, (pi+1)*perPage);
     const page = document.createElement('div');
     page.className = 'page';
+    if(state.brand.pageBg){
+      page.style.backgroundImage = `url(${state.brand.pageBg})`;
+      page.style.backgroundSize = 'cover';
+      page.style.backgroundPosition = 'center';
+    }
 
     // header
     const header = document.createElement('div');
@@ -611,19 +731,35 @@ function renderCard(p){
   const card = document.createElement('div');
   card.className = 'card';
   card.dataset.id = p.id;
-  const scale = (p.cardW ? 1 : (state.layout.cardSize/100));
   if(p.cardW){ card.style.width = p.cardW+'px'; }
   if(p.cardH){ card.style.minHeight = p.cardH+'px'; }
   if(!p.cardW && state.layout.cardSize !== 100){ card.style.fontSize = (state.layout.cardSize/100)+'em'; }
 
   const imgH = p.imgH || (110 * (state.layout.imgSize/100));
+  const bundleActive = !!(p.perUnit && p.bundleQty>1);
+
+  let priceNewBlock;
+  if(bundleActive && p.newPrice!==null){
+    const unitBig = euro(p.newPrice / p.bundleQty);
+    priceNewBlock = `
+      <div class="unit-price-display">${unitBig}</div>
+      <div class="new-price" contenteditable="true" spellcheck="false">${euro(p.newPrice)}</div>
+      <span class="unit-note">je Stk.${p.unit ? ' · '+escapeHtml(p.unit)+' oben' : ''}</span>`;
+  } else {
+    priceNewBlock = `
+      <div class="new-price" contenteditable="true" spellcheck="false">${p.newPrice!==null ? euro(p.newPrice) : ''}</div>
+      <span class="unit-note">${p.unit ? '/'+escapeHtml(p.unit) : ''}</span>`;
+  }
+  const toggleLabel = bundleActive ? 'Kolli-Preis groß anzeigen' : 'Je Stück groß anzeigen';
 
   card.innerHTML = `
+    <div class="drag-handle" title="Ziehen zum Sortieren">⠿⠿⠿</div>
     ${p.badge ? `<div class="badge" contenteditable="true" spellcheck="false">${escapeHtml(p.badge)}</div>` : ''}
     ${p.deposit ? `<div class="deposit" title="Pfandartikel">🧴</div>` : ''}
-    <div class="img-wrap" style="height:${imgH}px">
+    <div class="img-wrap ${p.transparent?'is-transparent':''}" style="height:${imgH}px">
       ${p.imgData ? `<img src="${p.imgData}">` : `<div class="placeholder">Produktbild<br>klicken zum Auswählen</div>`}
       <div class="img-resize" title="Bildgröße ziehen"></div>
+      ${p.imgData ? `<button class="remove-bg" title="Hintergrund entfernen (am besten bei hellem/weißem Hintergrund)">✂️ Hintergrund</button>` : ''}
     </div>
     <div class="name" contenteditable="true" spellcheck="false">${escapeHtml(p.name)}</div>
     <div class="pack" contenteditable="true" spellcheck="false">${escapeHtml(p.pack)}</div>
@@ -632,14 +768,18 @@ function renderCard(p){
         ${p.oldPrice!==null ? `<div class="old-price" contenteditable="true" spellcheck="false">${euro(p.oldPrice)}</div>` : `<div class="old-price" contenteditable="true" spellcheck="false" style="opacity:.3"></div>`}
         ${p.deposit ? `<span class="unit-note">zzgl. Pfand</span>` : ''}
       </div>
-      <div class="new-price" contenteditable="true" spellcheck="false">${p.newPrice!==null ? euro(p.newPrice) : ''}</div>
+      <div class="price-new-col">${priceNewBlock}</div>
     </div>
+    ${p.bundleQty>1 ? `<button class="unit-toggle" data-toggle="${p.id}">${toggleLabel}</button>` : ''}
     <div class="resize-handle" title="Kartengröße ziehen"></div>
-    <button class="remove-card" title="Karte löschen">×</button>
+    <div class="card-controls">
+      <button class="save-card" title="Diese Karte als Bild speichern">💾</button>
+      <button class="remove-card" title="Karte löschen">×</button>
+    </div>
   `;
 
   card.querySelector('.img-wrap').addEventListener('click', (e)=>{
-    if(e.target.classList.contains('img-resize')) return;
+    if(e.target.classList.contains('img-resize') || e.target.classList.contains('remove-bg')) return;
     pickImageForProductId = p.id;
     document.getElementById('singleImageInput').click();
   });
@@ -647,6 +787,39 @@ function renderCard(p){
     state.products = state.products.filter(x=>x.id!==p.id);
     renderPages();
     renderUnmatchedList();
+  });
+  const toggleBtn = card.querySelector('.unit-toggle');
+  if(toggleBtn){
+    toggleBtn.addEventListener('click', ()=>{
+      p.perUnit = !p.perUnit;
+      renderPages();
+    });
+  }
+  const removeBgBtn = card.querySelector('.remove-bg');
+  if(removeBgBtn){
+    removeBgBtn.addEventListener('click', async (e)=>{
+      e.stopPropagation();
+      removeBgBtn.textContent = '⏳ …';
+      try{
+        p.imgData = await removeWhiteBackground(p.imgData);
+        p.transparent = true;
+      }catch(err){ alert('Hintergrund konnte nicht entfernt werden.'); }
+      renderPages();
+    });
+  }
+  card.querySelector('.save-card').addEventListener('click', async (e)=>{
+    e.stopPropagation();
+    syncDomToState();
+    card.classList.add('exporting');
+    try{
+      const canvas = await html2canvas(card, {scale:3, backgroundColor:null});
+      const a = document.createElement('a');
+      a.href = canvas.toDataURL('image/png');
+      a.download = (p.name||'produkt').replace(/[^a-z0-9äöüß \-]/gi,'').trim().replace(/\s+/g,'-') + '.png';
+      a.click();
+    } finally {
+      card.classList.remove('exporting');
+    }
   });
 
   makeDraggable(card.querySelector('.resize-handle'), (dx,dy)=>{
@@ -663,7 +836,39 @@ function renderCard(p){
     imgWrap.style.height = p.imgH+'px';
   });
 
+  attachCardDnD(card, p);
+
   return card;
+}
+
+function attachCardDnD(card, p){
+  const handle = card.querySelector('.drag-handle');
+  handle.setAttribute('draggable','true');
+  handle.addEventListener('dragstart', (e)=>{
+    dragSrcId = p.id;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', p.id);
+    try{ e.dataTransfer.setDragImage(card, 20, 20); }catch(err){}
+  });
+  card.addEventListener('dragover', (e)=>{
+    e.preventDefault();
+    card.classList.add('drag-over');
+  });
+  card.addEventListener('dragleave', ()=> card.classList.remove('drag-over'));
+  card.addEventListener('drop', (e)=>{
+    e.preventDefault();
+    card.classList.remove('drag-over');
+    const srcId = dragSrcId || e.dataTransfer.getData('text/plain');
+    if(!srcId || srcId===p.id) return;
+    syncDomToState();
+    const fromIdx = state.products.findIndex(x=>x.id===srcId);
+    const toIdx = state.products.findIndex(x=>x.id===p.id);
+    if(fromIdx<0 || toIdx<0) return;
+    const [moved] = state.products.splice(fromIdx,1);
+    state.products.splice(toIdx,0,moved);
+    dragSrcId = null;
+    renderPages();
+  });
 }
 
 function makeDraggable(handle, onMove){
