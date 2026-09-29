@@ -162,8 +162,8 @@
 
     <div class="section">
       <h2>2. Bilder</h2>
-      <button class="block" id="btnPickFolder">📁 Bilder-Ordner wählen (z. B. OneDrive → Bilder)</button>
-      <div class="hint">Ordner wird nur in diesem Browser gelesen. Bilder werden automatisch per Dateiname / Artikelnummer den Produkten zugeordnet.</div>
+      <button class="block" id="btnPickFolder">📁 Bilder-Ordner hochladen / aktualisieren</button>
+      <div class="hint">Wähle den Ordner, der bei dir das "B:\"-Laufwerk aus CAO ersetzt (mit den gleichen Unterordnern, z. B. Getränke/Dosen/...). Die Bilder werden dauerhaft in diesem Browser gespeichert (auch nach Neuladen der Seite) – du musst sie nur einmal hochladen und bei Änderungen erneut auswählen, dann werden alte Bilder ersetzt.</div>
       <input type="file" id="folderInput" webkitdirectory multiple style="display:none;">
       <input type="file" id="singleImageInput" accept="image/*" style="display:none;">
       <div id="unmatchedList"></div>
@@ -299,6 +299,63 @@ function basename(p){
   const parts = String(p).split(/[\\/]/);
   return parts[parts.length-1];
 }
+function stripDriveLetter(p){
+  return String(p||'').replace(/^[a-zA-Z]:[\\/]/, '');
+}
+
+/* ---- Bilder-Datenbank (IndexedDB): merkt sich hochgeladene Bilder dauerhaft im Browser ---- */
+const IMG_DB_NAME = 'aktionapp-images';
+const IMG_STORE = 'images';
+function openImgDB(){
+  return new Promise((resolve,reject)=>{
+    const req = indexedDB.open(IMG_DB_NAME, 1);
+    req.onupgradeneeded = ()=>{
+      const db = req.result;
+      if(!db.objectStoreNames.contains(IMG_STORE)) db.createObjectStore(IMG_STORE, {keyPath:'relNorm'});
+    };
+    req.onsuccess = ()=> resolve(req.result);
+    req.onerror = ()=> reject(req.error);
+  });
+}
+async function clearImgDB(){
+  try{
+    const db = await openImgDB();
+    await new Promise((resolve,reject)=>{
+      const tx = db.transaction(IMG_STORE,'readwrite');
+      tx.objectStore(IMG_STORE).clear();
+      tx.oncomplete = resolve; tx.onerror = ()=>reject(tx.error);
+    });
+  }catch(e){}
+}
+async function putImages(entries){
+  try{
+    const db = await openImgDB();
+    await new Promise((resolve,reject)=>{
+      const tx = db.transaction(IMG_STORE,'readwrite');
+      const store = tx.objectStore(IMG_STORE);
+      entries.forEach(en=> store.put(en));
+      tx.oncomplete = resolve; tx.onerror = ()=>reject(tx.error);
+    });
+  }catch(e){}
+}
+async function getAllImages(){
+  try{
+    const db = await openImgDB();
+    return await new Promise((resolve,reject)=>{
+      const tx = db.transaction(IMG_STORE,'readonly');
+      const req = tx.objectStore(IMG_STORE).getAll();
+      req.onsuccess = ()=> resolve(req.result || []);
+      req.onerror = ()=> reject(req.error);
+    });
+  }catch(e){ return []; }
+}
+async function loadImageIndexFromDB(){
+  const all = await getAllImages();
+  if(all.length){
+    folderFileIndex = all;
+    setStatus(all.length + ' Bilder aus der Bilder-Datenbank geladen.');
+  }
+}
 function detectBundle(packText, nameText){
   const text = (packText||'') + ' ' + (nameText||'');
   const m = text.match(/(\d+)\s*(?:stk\.?|stück|dosen?|flaschen?)/i);
@@ -430,6 +487,7 @@ document.getElementById('btnApplyMapping').addEventListener('click', async ()=>{
       badge: badge,
       ref: get('ref'),
       imgFileNorm: normalize(basename(get('imgFile')).replace(/\.[^.]+$/,'')),
+      imgRelNorm: normalize(stripDriveLetter(get('imgFile')).replace(/\\/g,'/').replace(/\.[^.]+$/,'')),
       imgData: null, imgSource: 'none', transparent:false,
       bundleQty: bundle.bundleQty, perUnit: bundle.perUnit,
       cardW: null, cardH: null, imgH: null
@@ -448,32 +506,52 @@ document.getElementById('btnPickFolder').addEventListener('click', ()=> document
 
 document.getElementById('folderInput').addEventListener('change', async (e)=>{
   const files = Array.from(e.target.files).filter(f=>/\.(png|jpe?g|webp|gif|bmp)$/i.test(f.name));
-  folderFileIndex = files.map(f=>({norm: normalize(f.name.replace(/\.[^.]+$/,'')), file: f}));
+  if(!files.length) return;
+  setStatus('Lese 0 von ' + files.length + ' Bildern…');
+  await clearImgDB();
+  const entries = [];
+  for(let i=0;i<files.length;i++){
+    const f = files[i];
+    const rel = f.webkitRelativePath || f.name;
+    const relAfterRoot = rel.split('/').slice(1).join('/') || rel; // Name des gewählten Ordners selbst abschneiden
+    const relNorm = normalize(relAfterRoot.replace(/\.[^.]+$/,''));
+    const baseNorm = normalize(f.name.replace(/\.[^.]+$/,''));
+    const dataUrl = await fileToDataUrl(f);
+    entries.push({relNorm, baseNorm, relPath: relAfterRoot, dataUrl});
+    if(i % 15 === 0) setStatus('Lese ' + (i+1) + ' von ' + files.length + ' Bildern…');
+  }
+  await putImages(entries);
+  folderFileIndex = entries;
   // jeder neue Ordner ersetzt komplett: automatisch zugeordnete Bilder werden verworfen und neu gesucht
   state.products.forEach(p=>{ if(p.imgSource!=='manual'){ p.imgData=null; p.imgSource='none'; } });
-  setStatus(files.length + ' Bilder im gewählten Ordner gefunden.');
+  setStatus(files.length + ' Bilder in der Bilder-Datenbank gespeichert (bleibt auch nach Neuladen erhalten).');
   await autoMatchImages();
   renderPages();
 });
 
 function findBestMatch(product){
   if(!folderFileIndex.length) return null;
-  // 1) exakter Dateiname aus dem "Produktbild"-Feld des Warenwirtschaftsprogramms
+  // 1) exakter Unterordner-Pfad wie im "Produktbild"-Feld (z. B. Getränke/Dosen/...), Laufwerksbuchstabe abgeschnitten
+  if(product.imgRelNorm){
+    const hit = folderFileIndex.find(f=> f.relNorm === product.imgRelNorm);
+    if(hit) return hit;
+  }
+  // 2) exakter Dateiname allein (falls Ordnerstruktur nicht exakt übereinstimmt)
   if(product.imgFileNorm){
-    const hit = folderFileIndex.find(f=> f.norm === product.imgFileNorm);
+    const hit = folderFileIndex.find(f=> f.baseNorm === product.imgFileNorm);
     if(hit) return hit;
   }
   const refNorm = normalize(product.ref);
   const nameNorm = normalize(product.name);
   if(refNorm){
-    let hit = folderFileIndex.find(f=> f.norm === refNorm );
-    if(!hit) hit = folderFileIndex.find(f=> f.norm.includes(refNorm) || refNorm.includes(f.norm) );
+    let hit = folderFileIndex.find(f=> f.baseNorm === refNorm );
+    if(!hit) hit = folderFileIndex.find(f=> f.baseNorm.includes(refNorm) || refNorm.includes(f.baseNorm) );
     if(hit) return hit;
   }
   if(nameNorm){
-    let hit = folderFileIndex.find(f=> f.norm === nameNorm );
-    if(!hit) hit = folderFileIndex.find(f=> nameNorm.includes(f.norm) && f.norm.length>3 );
-    if(!hit) hit = folderFileIndex.find(f=> f.norm.includes(nameNorm) && nameNorm.length>3 );
+    let hit = folderFileIndex.find(f=> f.baseNorm === nameNorm );
+    if(!hit) hit = folderFileIndex.find(f=> nameNorm.includes(f.baseNorm) && f.baseNorm.length>3 );
+    if(!hit) hit = folderFileIndex.find(f=> f.baseNorm.includes(nameNorm) && nameNorm.length>3 );
     if(hit) return hit;
   }
   return null;
@@ -484,7 +562,7 @@ async function autoMatchImages(){
     if(p.imgSource === 'manual') continue; // never override manual picks
     const hit = findBestMatch(p);
     if(hit){
-      p.imgData = await fileToDataUrl(hit.file);
+      p.imgData = hit.dataUrl;
       p.imgSource = 'auto';
       p.transparent = false;
     }
@@ -594,7 +672,7 @@ document.getElementById('btnApplyLayout').addEventListener('click', ()=>{
 document.getElementById('btnAddCard').addEventListener('click', ()=>{
   state.products.push({
     id:'p'+(uid++), name:'Neues Produkt', pack:'', unit:'', oldPrice:null, newPrice:null,
-    deposit:false, badge:'', ref:'', imgFileNorm:'', imgData:null, imgSource:'none', transparent:false,
+    deposit:false, badge:'', ref:'', imgFileNorm:'', imgRelNorm:'', imgData:null, imgSource:'none', transparent:false,
     bundleQty:null, perUnit:false, cardW:null, cardH:null, imgH:null
   });
   renderPages();
@@ -909,6 +987,7 @@ document.getElementById('btnPng').addEventListener('click', async ()=>{
 
 /* ============================= INIT ============================= */
 renderPages();
+loadImageIndexFromDB();
 </script>
 </body>
 </html>
