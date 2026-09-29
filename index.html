@@ -330,6 +330,28 @@
       <input type="text" id="titleInput" value="Aktion">
       <label>Gültigkeitszeitraum</label>
       <input type="text" id="validityInput" value="–">
+      <div class="row">
+        <div>
+          <label>Farbverlauf von</label>
+          <input type="text" id="headerBg1Input" value="#f7941e">
+        </div>
+        <div>
+          <label>Farbverlauf bis</label>
+          <input type="text" id="headerBg2Input" value="#e8720c">
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Eckenrundung (px)</label>
+          <input type="number" id="headerRadiusInput" value="0" min="0" max="60">
+        </div>
+        <div>
+          <label>Abstand vom Rand (px)</label>
+          <input type="number" id="headerMarginInput" value="0" min="0" max="40">
+        </div>
+      </div>
+      <label>Innenabstand / Höhe (px)</label>
+      <input type="number" id="headerPadInput" value="18" min="6" max="60">
     </div>
 
     <div class="section">
@@ -372,6 +394,20 @@
       <input type="text" id="footTextInput" value="G.A.B GmbH · IZ NÖ-Süd Straße 14, 37B Obj. 37B A-2351 Wiener Neudorf ÖSTERREICH · Tel. +43 2236 50 60 65 · office@global-produktion.com · www.gab.karga.uk">
       <label>Kleingedrucktes</label>
       <input type="text" id="legalInput" value="Druckfehler vorbehalten. Alle Preise netto exkl. MwSt. Solange der Vorrat reicht.">
+      <label>Hintergrundfarbe</label>
+      <input type="text" id="footerBgInput" value="#2b2320">
+      <div class="row">
+        <div>
+          <label>Eckenrundung (px)</label>
+          <input type="number" id="footerRadiusInput" value="0" min="0" max="60">
+        </div>
+        <div>
+          <label>Abstand vom Rand (px)</label>
+          <input type="number" id="footerMarginInput" value="0" min="0" max="40">
+        </div>
+      </div>
+      <label>Innenabstand / Höhe (px)</label>
+      <input type="number" id="footerPadInput" value="10" min="4" max="50">
     </div>
 
     <div class="section">
@@ -406,9 +442,11 @@
 /* ============================= STATE ============================= */
 const state = {
   brand: { logo1: 'assets/logo1-default.svg', logo2: 'assets/logo2-default.png', bg: null, pageBg: null, accent: '#f7941e' },
-  header: { kicker: 'ABHOLUNG UND LIEFERUNG', title: 'Aktion', validity: '–' },
+  header: { kicker: 'ABHOLUNG UND LIEFERUNG', title: 'Aktion', validity: '–',
+            bg1: '#f7941e', bg2: '#e8720c', radius: 0, margin: 0, padY: 18 },
   footer: { text: 'G.A.B GmbH · IZ NÖ-Süd Straße 14, 37B Obj. 37B A-2351 Wiener Neudorf ÖSTERREICH · Tel. +43 2236 50 60 65 · office@global-produktion.com · www.gab.karga.uk',
-            legal: 'Druckfehler vorbehalten. Alle Preise netto exkl. MwSt. Solange der Vorrat reicht.' },
+            legal: 'Druckfehler vorbehalten. Alle Preise netto exkl. MwSt. Solange der Vorrat reicht.',
+            bg: '#2b2320', radius: 0, margin: 0, padY: 10 },
   layout: { cols: 2, perPage: 6, cardSize: 100, imgSize: 100 },
   products: [] // {id,name,pack,unit,oldPrice,newPrice,deposit,badge,ref,imgFileNorm,imgData,imgSource,transparent,bundleQty,perUnit,cardW,cardH,imgH}
 };
@@ -804,8 +842,17 @@ function setPath(obj, path, val){
 bindText('kickerInput','header.kicker');
 bindText('titleInput','header.title');
 bindText('validityInput','header.validity');
+bindText('headerBg1Input','header.bg1');
+bindText('headerBg2Input','header.bg2');
+bindText('headerRadiusInput','header.radius');
+bindText('headerMarginInput','header.margin');
+bindText('headerPadInput','header.padY');
 bindText('footTextInput','footer.text');
 bindText('legalInput','footer.legal');
+bindText('footerBgInput','footer.bg');
+bindText('footerRadiusInput','footer.radius');
+bindText('footerMarginInput','footer.margin');
+bindText('footerPadInput','footer.padY');
 bindText('accentInput','brand.accent');
 document.getElementById('accentInput').addEventListener('input', e=>{
   document.documentElement.style.setProperty('--orange', e.target.value);
@@ -883,8 +930,17 @@ document.getElementById('templateInput').addEventListener('change', (e)=>{
       document.getElementById('kickerInput').value = state.header.kicker;
       document.getElementById('titleInput').value = state.header.title;
       document.getElementById('validityInput').value = state.header.validity;
+      document.getElementById('headerBg1Input').value = state.header.bg1 || '#f7941e';
+      document.getElementById('headerBg2Input').value = state.header.bg2 || '#e8720c';
+      document.getElementById('headerRadiusInput').value = state.header.radius || 0;
+      document.getElementById('headerMarginInput').value = state.header.margin || 0;
+      document.getElementById('headerPadInput').value = state.header.padY || 18;
       document.getElementById('footTextInput').value = state.footer.text;
       document.getElementById('legalInput').value = state.footer.legal;
+      document.getElementById('footerBgInput').value = state.footer.bg || '#2b2320';
+      document.getElementById('footerRadiusInput').value = state.footer.radius || 0;
+      document.getElementById('footerMarginInput').value = state.footer.margin || 0;
+      document.getElementById('footerPadInput').value = state.footer.padY || 10;
       document.getElementById('accentInput').value = state.brand.accent;
       document.documentElement.style.setProperty('--orange', state.brand.accent);
       if(state.brand.logo1) document.getElementById('logoPreview').src = state.brand.logo1;
@@ -959,7 +1015,11 @@ function renderPages(){
     // header
     const header = document.createElement('div');
     header.className = 'page-header';
-    if(state.brand.bg){ header.style.backgroundImage = `linear-gradient(135deg, rgba(247,148,30,.75), rgba(232,114,12,.85)), url(${state.brand.bg})`; header.style.backgroundSize='cover'; header.style.backgroundPosition='center'; }
+    header.style.background = `linear-gradient(135deg, ${state.header.bg1} 0%, ${state.header.bg2} 100%)`;
+    header.style.borderRadius = (state.header.radius||0) + 'px';
+    header.style.margin = (state.header.margin||0) + 'px ' + (state.header.margin||0) + 'px 0';
+    header.style.padding = (state.header.padY||18) + 'px 24px';
+    if(state.brand.bg){ header.style.backgroundImage = `linear-gradient(135deg, ${hexToRgba(state.header.bg1,.75)}, ${hexToRgba(state.header.bg2,.85)}), url(${state.brand.bg})`; header.style.backgroundSize='cover'; header.style.backgroundPosition='center'; }
     header.innerHTML = `
       <img class="logo1" src="${state.brand.logo1||''}" title="Klicken um Logo zu ändern">
       <div class="headline">
@@ -984,6 +1044,10 @@ function renderPages(){
     // footer
     const footer = document.createElement('div');
     footer.className = 'page-footer';
+    footer.style.background = state.footer.bg || '#2b2320';
+    footer.style.borderRadius = (state.footer.radius||0) + 'px';
+    footer.style.margin = '0 ' + (state.footer.margin||0) + 'px ' + (state.footer.margin||0) + 'px';
+    footer.style.padding = (state.footer.padY||10) + 'px 24px';
     footer.innerHTML = `
       <img src="${state.brand.logo2||''}" title="Klicken um Logo zu ändern">
       <div class="foot-text" contenteditable="true" spellcheck="false">${escapeHtml(state.footer.text)}</div>
@@ -994,6 +1058,15 @@ function renderPages(){
 
     stage.appendChild(page);
   }
+}
+
+function hexToRgba(hex, alpha){
+  const h = (hex||'#f7941e').replace('#','');
+  const full = h.length===3 ? h.split('').map(c=>c+c).join('') : h;
+  const n = parseInt(full,16);
+  if(isNaN(n)) return hex;
+  const r=(n>>16)&255, g=(n>>8)&255, b=n&255;
+  return `rgba(${r},${g},${b},${alpha})`;
 }
 
 function escapeHtml(s){
