@@ -611,6 +611,24 @@ document.getElementById('btnApplyMapping').addEventListener('click', async ()=>{
 /* ============================= IMAGES ============================= */
 document.getElementById('btnPickFolder').addEventListener('click', ()=> document.getElementById('folderInput').click());
 
+function sanitizeStoragePath(relPath){
+  // Supabase Storage lehnt Umlaute und viele Sonderzeichen in Dateipfaden komplett ab
+  // (400 "InvalidKey"). Erst Akzente entfernen (ä->a, ö->o, ü->u, é->e, ...), ß->ss,
+  // dann alles außerhalb eines sicheren ASCII-Zeichensatzes durch "_" ersetzen.
+  return relPath
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/ß/g, 'ss')
+    .split('/')
+    .map(seg => seg
+      .replace(/&/g, 'und')
+      .replace(/[^a-zA-Z0-9 _.\-()]/g, '_')
+      .replace(/\s+/g, ' ')
+      .trim()
+    )
+    .join('/');
+}
+
 async function uploadOneFile(relAfterRoot, file, attempt){
   attempt = attempt || 1;
   try{
@@ -644,7 +662,8 @@ document.getElementById('folderInput').addEventListener('change', async (e)=>{
   for(let i=0;i<files.length;i++){
     const f = files[i];
     const rel = f.webkitRelativePath || f.name;
-    const relAfterRoot = rel.split('/').slice(1).join('/') || rel; // Name des gewählten Ordners selbst abschneiden
+    const relRaw = rel.split('/').slice(1).join('/') || rel; // Name des gewählten Ordners selbst abschneiden
+    const relAfterRoot = sanitizeStoragePath(relRaw);
     setStatus('Lade Bild ' + (i+1) + ' von ' + files.length + ' hoch… (' + okCount + ' ok, ' + failed.length + ' fehlgeschlagen)');
     const result = await uploadOneFile(relAfterRoot, f);
     if(result.ok) okCount++; else failed.push(relAfterRoot + ' — ' + result.error);
