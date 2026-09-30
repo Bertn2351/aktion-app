@@ -108,7 +108,7 @@
     background:#faf8f5;border-radius:10px;display:flex;align-items:center;justify-content:center;
     overflow:hidden;cursor:pointer;position:relative;margin-bottom:8px;
   }
-  .card .img-wrap .product-photo{width:100%;height:100%;background-size:contain;background-repeat:no-repeat;background-position:center;}
+  .card .img-wrap .product-photo{max-width:100%;max-height:100%;display:block;}
   .card .img-wrap .placeholder{font-size:11px;color:#aaa;text-align:center;padding:8px;}
   .card .img-wrap .img-resize{position:absolute;bottom:2px;right:2px;width:14px;height:14px;background:rgba(0,0,0,.25);
     border-radius:3px;cursor:ns-resize;}
@@ -1208,7 +1208,7 @@ function renderCard(p){
     ${p.badge ? `<div class="badge" contenteditable="true" spellcheck="false">${escapeHtml(p.badge)}</div>` : ''}
     ${p.deposit ? `<div class="deposit" title="Pfandartikel">🧴</div>` : ''}
     <div class="img-wrap ${p.transparent?'is-transparent':''}" style="height:${imgH}px">
-      ${p.imgData ? `<div class="product-photo" style="background-image:url('${p.imgData}')"></div>` : `<div class="placeholder">Produktbild<br>klicken zum Auswählen</div>`}
+      ${p.imgData ? `<img class="product-photo" src="${p.imgData}">` : `<div class="placeholder">Produktbild<br>klicken zum Auswählen</div>`}
       <div class="img-resize" title="Bildgröße ziehen"></div>
       ${p.imgData ? `<button class="remove-bg" title="Hintergrund entfernen (am besten bei hellem/weißem Hintergrund)">✂️ Hintergrund</button>` : ''}
     </div>
@@ -1371,10 +1371,6 @@ function makeDraggable(handle, onMove){
 }
 
 /* ============================= EXPORT ============================= */
-function extractBgUrl(styleValue){
-  const m = (styleValue||'').match(/url\((['"]?)(.*?)\1\)/);
-  return m ? m[2] : null;
-}
 function preloadImage(url){
   return new Promise(resolve=>{
     if(!url){ resolve(); return; }
@@ -1401,9 +1397,8 @@ document.getElementById('btnPrint').addEventListener('click', async ()=>{
     clone.style.margin = '0';
     clone.style.boxShadow = 'none';
     clone.querySelectorAll('.resize-handle, .img-resize, .remove-card, .card-controls, .drag-handle, .unit-toggle, .remove-bg').forEach(el=>el.remove());
-    clone.querySelectorAll('.product-photo').forEach(el=>{
-      const url = extractBgUrl(el.style.backgroundImage);
-      if(url) imageUrls.add(url);
+    clone.querySelectorAll('img.product-photo').forEach(el=>{
+      if(el.src) imageUrls.add(el.src);
     });
     printRoot.appendChild(clone);
   });
