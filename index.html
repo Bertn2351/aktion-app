@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Aktionsblatt-Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,800;1,800&family=Oswald:wght@600;700&family=Bebas+Neue&family=Anton&family=Playfair+Display:ital,wght@0,800;1,800&family=Caveat:wght@700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.50.0/dist/umd/supabase.js"></script>
 <style>
@@ -361,6 +364,16 @@
       <input type="text" id="kickerInput" value="ABHOLUNG UND LIEFERUNG">
       <label>Titel</label>
       <input type="text" id="titleInput" value="Aktion">
+      <label>Schriftart (Titel)</label>
+      <select id="titleFontInput">
+        <option value="">Standard (aktuell)</option>
+        <option value="'Poppins', sans-serif" style="font-family:'Poppins',sans-serif;font-style:italic;">Poppins</option>
+        <option value="'Oswald', sans-serif" style="font-family:'Oswald',sans-serif;">Oswald (schmal, kräftig)</option>
+        <option value="'Bebas Neue', sans-serif" style="font-family:'Bebas Neue',sans-serif;">Bebas Neue (Plakat)</option>
+        <option value="'Anton', sans-serif" style="font-family:'Anton',sans-serif;">Anton (sehr fett)</option>
+        <option value="'Playfair Display', serif" style="font-family:'Playfair Display',serif;">Playfair Display (elegant)</option>
+        <option value="'Caveat', cursive" style="font-family:'Caveat',cursive;">Caveat (handschriftlich)</option>
+      </select>
       <label>Gültigkeitszeitraum</label>
       <input type="text" id="validityInput" value="–">
       <div class="row">
@@ -480,7 +493,7 @@
 /* ============================= STATE ============================= */
 const state = {
   brand: { logo1: 'assets/logo1-default.svg', logo2: 'assets/logo2-default.png', bg: null, pageBg: null, accent: '#f7941e' },
-  header: { kicker: 'ABHOLUNG UND LIEFERUNG', title: 'Aktion', validity: '–',
+  header: { kicker: 'ABHOLUNG UND LIEFERUNG', title: 'Aktion', validity: '–', titleFont: '',
             bg1: '#f7941e', bg2: '#e8720c', radius: 0, margin: 0, padY: 18 },
   footer: { text: 'G.A.B GmbH · IZ NÖ-Süd Straße 14, 37B Obj. 37B A-2351 Wiener Neudorf ÖSTERREICH · Tel. +43 2236 50 60 65 · office@global-produktion.com · www.gab.karga.uk',
             legal: 'Druckfehler vorbehalten. Alle Preise netto exkl. MwSt. Solange der Vorrat reicht.',
@@ -880,6 +893,7 @@ function setPath(obj, path, val){
 bindText('kickerInput','header.kicker');
 bindText('titleInput','header.title');
 bindText('validityInput','header.validity');
+bindText('titleFontInput','header.titleFont');
 bindText('headerBg1Input','header.bg1');
 bindText('headerBg2Input','header.bg2');
 bindText('headerRadiusInput','header.radius');
@@ -967,6 +981,7 @@ document.getElementById('templateInput').addEventListener('change', (e)=>{
       Object.assign(state, loaded);
       document.getElementById('kickerInput').value = state.header.kicker;
       document.getElementById('titleInput').value = state.header.title;
+      document.getElementById('titleFontInput').value = state.header.titleFont || '';
       document.getElementById('validityInput').value = state.header.validity;
       document.getElementById('headerBg1Input').value = state.header.bg1 || '#f7941e';
       document.getElementById('headerBg2Input').value = state.header.bg2 || '#e8720c';
@@ -1032,7 +1047,7 @@ function buildHeaderEl(){
     <img class="logo1" src="${state.brand.logo1||''}" title="Klicken um Logo zu ändern">
     <div class="headline">
       <div class="kicker">${escapeHtml(state.header.kicker)}</div>
-      <div class="title" contenteditable="true" spellcheck="false">${escapeHtml(state.header.title)}</div>
+      <div class="title" contenteditable="true" spellcheck="false" style="${state.header.titleFont ? 'font-family:'+state.header.titleFont+';' : ''}">${escapeHtml(state.header.title)}</div>
     </div>
     <div class="validity">
       <span class="lbl">GÜLTIGKEITSZEITRAUM</span>
