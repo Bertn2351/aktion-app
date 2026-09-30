@@ -161,7 +161,8 @@
     #stage{padding:0;gap:0;display:block;}
     body{background:#fff;}
     .page-shell{width:auto !important;height:auto !important;}
-    .page{box-shadow:none;margin:0;page-break-after:always;width:210mm;min-height:297mm;transform:none !important;}
+    .page{box-shadow:none;margin:0;width:210mm;min-height:297mm;transform:none !important;}
+    .page + .page{page-break-before:always;}
     .resize-handle, .img-resize, .remove-card{display:none !important;}
     @page{size:A4;margin:0;}
   }
@@ -1019,6 +1020,45 @@ function syncDomToState(){
   if(legalEls[0]) state.footer.legal = legalEls[0].textContent.trim();
 }
 
+function buildHeaderEl(){
+  const header = document.createElement('div');
+  header.className = 'page-header';
+  header.style.background = `linear-gradient(135deg, ${state.header.bg1} 0%, ${state.header.bg2} 100%)`;
+  header.style.borderRadius = (state.header.radius||0) + 'px';
+  header.style.margin = (state.header.margin||0) + 'px ' + (state.header.margin||0) + 'px 0';
+  header.style.padding = (state.header.padY||18) + 'px 24px';
+  if(state.brand.bg){ header.style.backgroundImage = `linear-gradient(135deg, ${hexToRgba(state.header.bg1,.75)}, ${hexToRgba(state.header.bg2,.85)}), url(${state.brand.bg})`; header.style.backgroundSize='cover'; header.style.backgroundPosition='center'; }
+  header.innerHTML = `
+    <img class="logo1" src="${state.brand.logo1||''}" title="Klicken um Logo zu ändern">
+    <div class="headline">
+      <div class="kicker">${escapeHtml(state.header.kicker)}</div>
+      <div class="title" contenteditable="true" spellcheck="false">${escapeHtml(state.header.title)}</div>
+    </div>
+    <div class="validity">
+      <span class="lbl">GÜLTIGKEITSZEITRAUM</span>
+      <span class="val" contenteditable="true" spellcheck="false">${escapeHtml(state.header.validity)}</span>
+    </div>
+  `;
+  header.querySelector('.logo1').addEventListener('click', ()=> document.getElementById('logo1Input').click());
+  return header;
+}
+
+function buildFooterEl(){
+  const footer = document.createElement('div');
+  footer.className = 'page-footer';
+  footer.style.background = state.footer.bg || '#2b2320';
+  footer.style.borderRadius = (state.footer.radius||0) + 'px';
+  footer.style.margin = '0 ' + (state.footer.margin||0) + 'px ' + (state.footer.margin||0) + 'px';
+  footer.style.padding = (state.footer.padY||10) + 'px 24px';
+  footer.innerHTML = `
+    <img src="${state.brand.logo2||''}" title="Klicken um Logo zu ändern">
+    <div class="foot-text" contenteditable="true" spellcheck="false">${escapeHtml(state.footer.text)}</div>
+    <div class="legal" contenteditable="true" spellcheck="false">${escapeHtml(state.footer.legal)}</div>
+  `;
+  footer.querySelector('img').addEventListener('click', ()=> document.getElementById('logo2Input').click());
+  return footer;
+}
+
 function renderPages(){
   syncDomToState();
   const stage = document.getElementById('stage');
@@ -1050,26 +1090,7 @@ function renderPages(){
     }
 
     // header
-    const header = document.createElement('div');
-    header.className = 'page-header';
-    header.style.background = `linear-gradient(135deg, ${state.header.bg1} 0%, ${state.header.bg2} 100%)`;
-    header.style.borderRadius = (state.header.radius||0) + 'px';
-    header.style.margin = (state.header.margin||0) + 'px ' + (state.header.margin||0) + 'px 0';
-    header.style.padding = (state.header.padY||18) + 'px 24px';
-    if(state.brand.bg){ header.style.backgroundImage = `linear-gradient(135deg, ${hexToRgba(state.header.bg1,.75)}, ${hexToRgba(state.header.bg2,.85)}), url(${state.brand.bg})`; header.style.backgroundSize='cover'; header.style.backgroundPosition='center'; }
-    header.innerHTML = `
-      <img class="logo1" src="${state.brand.logo1||''}" title="Klicken um Logo zu ändern">
-      <div class="headline">
-        <div class="kicker">${escapeHtml(state.header.kicker)}</div>
-        <div class="title" contenteditable="true" spellcheck="false">${escapeHtml(state.header.title)}</div>
-      </div>
-      <div class="validity">
-        <span class="lbl">GÜLTIGKEITSZEITRAUM</span>
-        <span class="val" contenteditable="true" spellcheck="false">${escapeHtml(state.header.validity)}</span>
-      </div>
-    `;
-    header.querySelector('.logo1').addEventListener('click', ()=> document.getElementById('logo1Input').click());
-    page.appendChild(header);
+    page.appendChild(buildHeaderEl());
 
     // cards
     const wrap = document.createElement('div');
@@ -1079,19 +1100,7 @@ function renderPages(){
     page.appendChild(wrap);
 
     // footer
-    const footer = document.createElement('div');
-    footer.className = 'page-footer';
-    footer.style.background = state.footer.bg || '#2b2320';
-    footer.style.borderRadius = (state.footer.radius||0) + 'px';
-    footer.style.margin = '0 ' + (state.footer.margin||0) + 'px ' + (state.footer.margin||0) + 'px';
-    footer.style.padding = (state.footer.padY||10) + 'px 24px';
-    footer.innerHTML = `
-      <img src="${state.brand.logo2||''}" title="Klicken um Logo zu ändern">
-      <div class="foot-text" contenteditable="true" spellcheck="false">${escapeHtml(state.footer.text)}</div>
-      <div class="legal" contenteditable="true" spellcheck="false">${escapeHtml(state.footer.legal)}</div>
-    `;
-    footer.querySelector('img').addEventListener('click', ()=> document.getElementById('logo2Input').click());
-    page.appendChild(footer);
+    page.appendChild(buildFooterEl());
 
     const pageShell = document.createElement('div');
     pageShell.className = 'page-shell';
@@ -1252,15 +1261,32 @@ function renderCard(p){
   card.querySelector('.save-card').addEventListener('click', async (e)=>{
     e.stopPropagation();
     syncDomToState();
-    card.classList.add('exporting');
+    const tempPage = document.createElement('div');
+    tempPage.className = 'page exporting';
+    tempPage.style.position = 'fixed';
+    tempPage.style.left = '-9999px';
+    tempPage.style.top = '0';
+    if(state.brand.pageBg){
+      tempPage.style.backgroundImage = `url(${state.brand.pageBg})`;
+      tempPage.style.backgroundSize = 'cover';
+      tempPage.style.backgroundPosition = 'center';
+    }
+    tempPage.appendChild(buildHeaderEl());
+    const wrap = document.createElement('div');
+    wrap.className = 'cards-wrap';
+    wrap.style.gridTemplateColumns = `repeat(${state.layout.cols}, 1fr)`;
+    wrap.appendChild(renderCard(p));
+    tempPage.appendChild(wrap);
+    tempPage.appendChild(buildFooterEl());
+    document.body.appendChild(tempPage);
     try{
-      const canvas = await html2canvas(card, {scale:3, backgroundColor:null, useCORS:true});
+      const canvas = await html2canvas(tempPage, {scale:2, useCORS:true});
       const a = document.createElement('a');
       a.href = canvas.toDataURL('image/png');
       a.download = (p.name||'produkt').replace(/[^a-z0-9äöüß \-]/gi,'').trim().replace(/\s+/g,'-') + '.png';
       a.click();
     } finally {
-      card.classList.remove('exporting');
+      document.body.removeChild(tempPage);
     }
   });
 
