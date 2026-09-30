@@ -108,7 +108,7 @@
     background:#faf8f5;border-radius:10px;display:flex;align-items:center;justify-content:center;
     overflow:hidden;cursor:pointer;position:relative;margin-bottom:8px;
   }
-  .card .img-wrap img{width:100%;height:100%;object-fit:contain;}
+  .card .img-wrap .product-photo{width:100%;height:100%;background-size:contain;background-repeat:no-repeat;background-position:center;}
   .card .img-wrap .placeholder{font-size:11px;color:#aaa;text-align:center;padding:8px;}
   .card .img-wrap .img-resize{position:absolute;bottom:2px;right:2px;width:14px;height:14px;background:rgba(0,0,0,.25);
     border-radius:3px;cursor:ns-resize;}
@@ -156,14 +156,14 @@
   .exporting .remove-bg{display:none !important;}
   .sub-price-line{font-size:9px;color:#aaa;text-align:right;margin-top:1px;}
 
+  #printRoot{display:none;}
   @media print{
-    #sidebar, #toolbar, #mobileNav, .preview-meta, .empty-guide{display:none !important;}
-    #stage{padding:0;gap:0;display:block;}
+    body.printing-mode > *{display:none !important;}
+    body.printing-mode #printRoot{display:block !important;}
     body{background:#fff;}
-    .page-shell{width:auto !important;height:auto !important;}
-    .page{box-shadow:none;margin:0;width:210mm;min-height:297mm;transform:none !important;}
-    .page + .page{page-break-before:always;}
-    .resize-handle, .img-resize, .remove-card, .card-controls, .drag-handle, .unit-toggle, .remove-bg{display:none !important;}
+    #printRoot .page{box-shadow:none !important;margin:0 !important;width:210mm;height:297mm;
+      transform:none !important;overflow:hidden;page-break-after:always;break-after:page;}
+    #printRoot .page:last-child{page-break-after:auto;break-after:auto;}
     @page{size:A4;margin:0;}
   }
   #toolbar{position:sticky;top:0;z-index:5;background:rgba(255,255,255,.95);border-bottom:1px solid var(--panel-border);
@@ -1208,7 +1208,7 @@ function renderCard(p){
     ${p.badge ? `<div class="badge" contenteditable="true" spellcheck="false">${escapeHtml(p.badge)}</div>` : ''}
     ${p.deposit ? `<div class="deposit" title="Pfandartikel">🧴</div>` : ''}
     <div class="img-wrap ${p.transparent?'is-transparent':''}" style="height:${imgH}px">
-      ${p.imgData ? `<img src="${p.imgData}">` : `<div class="placeholder">Produktbild<br>klicken zum Auswählen</div>`}
+      ${p.imgData ? `<div class="product-photo" style="background-image:url('${p.imgData}')"></div>` : `<div class="placeholder">Produktbild<br>klicken zum Auswählen</div>`}
       <div class="img-resize" title="Bildgröße ziehen"></div>
       ${p.imgData ? `<button class="remove-bg" title="Hintergrund entfernen (am besten bei hellem/weißem Hintergrund)">✂️ Hintergrund</button>` : ''}
     </div>
@@ -1355,16 +1355,23 @@ function makeDraggable(handle, onMove){
 }
 
 /* ============================= EXPORT ============================= */
-function resetPageTransformsForPrint(){
-  document.querySelectorAll('.page').forEach(p=> p.style.transform = 'none');
-  document.querySelectorAll('.page-shell').forEach(s=>{ s.style.width=''; s.style.height=''; });
-}
-window.addEventListener('beforeprint', resetPageTransformsForPrint);
-
 document.getElementById('btnPrint').addEventListener('click', ()=>{
   syncDomToState();
-  resetPageTransformsForPrint();
+  const printRoot = document.createElement('div');
+  printRoot.id = 'printRoot';
+  document.querySelectorAll('#stage .page').forEach(page=>{
+    const clone = page.cloneNode(true);
+    clone.style.transform = 'none';
+    clone.style.margin = '0';
+    clone.style.boxShadow = 'none';
+    clone.querySelectorAll('.resize-handle, .img-resize, .remove-card, .card-controls, .drag-handle, .unit-toggle, .remove-bg').forEach(el=>el.remove());
+    printRoot.appendChild(clone);
+  });
+  document.body.appendChild(printRoot);
+  document.body.classList.add('printing-mode');
   window.print();
+  document.body.classList.remove('printing-mode');
+  document.body.removeChild(printRoot);
 });
 
 document.getElementById('btnPng').addEventListener('click', async ()=>{
