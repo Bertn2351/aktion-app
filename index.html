@@ -1274,11 +1274,27 @@ function renderCard(p){
     tempPage.appendChild(buildHeaderEl());
     const wrap = document.createElement('div');
     wrap.className = 'cards-wrap';
-    wrap.style.gridTemplateColumns = `repeat(${state.layout.cols}, 1fr)`;
-    wrap.appendChild(renderCard(p));
+    wrap.style.display = 'flex';
+    wrap.style.alignItems = 'center';
+    wrap.style.justifyContent = 'center';
+    const bigCard = renderCard(p);
+    bigCard.style.width = '440px';
+    bigCard.style.padding = '22px';
+    const setFontSize = (sel, px)=>{ const el = bigCard.querySelector(sel); if(el) el.style.fontSize = px; };
+    setFontSize('.name', '19px');
+    setFontSize('.pack', '14px');
+    setFontSize('.old-price', '17px');
+    setFontSize('.new-price', '34px');
+    setFontSize('.unit-price-display', '34px');
+    setFontSize('.badge', '14px');
+    bigCard.querySelectorAll('.unit-note').forEach(el=> el.style.fontSize = '13px');
+    const bigImgWrap = bigCard.querySelector('.img-wrap');
+    if(bigImgWrap) bigImgWrap.style.height = '280px';
+    wrap.appendChild(bigCard);
     tempPage.appendChild(wrap);
     tempPage.appendChild(buildFooterEl());
     document.body.appendChild(tempPage);
+    await preloadImage(p.imgData);
     try{
       const canvas = await html2canvas(tempPage, {scale:2, useCORS:true});
       const a = document.createElement('a');
@@ -1355,18 +1371,49 @@ function makeDraggable(handle, onMove){
 }
 
 /* ============================= EXPORT ============================= */
-document.getElementById('btnPrint').addEventListener('click', ()=>{
+function extractBgUrl(styleValue){
+  const m = (styleValue||'').match(/url\((['"]?)(.*?)\1\)/);
+  return m ? m[2] : null;
+}
+function preloadImage(url){
+  return new Promise(resolve=>{
+    if(!url){ resolve(); return; }
+    const img = new Image();
+    img.onload = resolve;
+    img.onerror = resolve;
+    img.src = url;
+  });
+}
+
+document.getElementById('btnPrint').addEventListener('click', async ()=>{
   syncDomToState();
+  const btn = document.getElementById('btnPrint');
+  const oldLabel = btn.textContent;
+  btn.textContent = '⏳ Bilder werden geladen…';
+  btn.disabled = true;
+
   const printRoot = document.createElement('div');
   printRoot.id = 'printRoot';
+  const imageUrls = new Set();
   document.querySelectorAll('#stage .page').forEach(page=>{
     const clone = page.cloneNode(true);
     clone.style.transform = 'none';
     clone.style.margin = '0';
     clone.style.boxShadow = 'none';
     clone.querySelectorAll('.resize-handle, .img-resize, .remove-card, .card-controls, .drag-handle, .unit-toggle, .remove-bg').forEach(el=>el.remove());
+    clone.querySelectorAll('.product-photo').forEach(el=>{
+      const url = extractBgUrl(el.style.backgroundImage);
+      if(url) imageUrls.add(url);
+    });
     printRoot.appendChild(clone);
   });
+
+  // Cloud-Bilder brauchen Zeit zum Laden - erst wenn alle im Cache sind, drucken
+  await Promise.all([...imageUrls].map(preloadImage));
+
+  btn.textContent = oldLabel;
+  btn.disabled = false;
+
   document.body.appendChild(printRoot);
   document.body.classList.add('printing-mode');
   window.print();
