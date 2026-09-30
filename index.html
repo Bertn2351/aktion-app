@@ -1355,8 +1355,15 @@ function makeDraggable(handle, onMove){
 }
 
 /* ============================= EXPORT ============================= */
+function resetPageTransformsForPrint(){
+  document.querySelectorAll('.page').forEach(p=> p.style.transform = 'none');
+  document.querySelectorAll('.page-shell').forEach(s=>{ s.style.width=''; s.style.height=''; });
+}
+window.addEventListener('beforeprint', resetPageTransformsForPrint);
+
 document.getElementById('btnPrint').addEventListener('click', ()=>{
   syncDomToState();
+  resetPageTransformsForPrint();
   window.print();
 });
 
