@@ -143,11 +143,6 @@
     letter-spacing:2px;line-height:15px;display:none;}
   .card:hover .drag-handle{display:block;}
   .card.drag-over{outline:2px dashed var(--orange);outline-offset:2px;}
-  .card .img-wrap.is-transparent{
-    background-image:linear-gradient(45deg,#eee 25%,transparent 25%),linear-gradient(-45deg,#eee 25%,transparent 25%),
-    linear-gradient(45deg,transparent 75%,#eee 75%),linear-gradient(-45deg,transparent 75%,#eee 75%);
-    background-size:16px 16px;background-position:0 0,0 8px,8px -8px,-8px 0px;background-color:#fff;
-  }
   .card .remove-bg{position:absolute;bottom:2px;left:2px;font-size:9px;background:rgba(0,0,0,.55);color:#fff;
     border-radius:4px;padding:2px 5px;display:none;}
   .card .img-wrap:hover .remove-bg{display:block;}
@@ -434,7 +429,7 @@
       <button class="block secondary" id="btnApplyLayout">Auf alle Karten anwenden</button>
       <label style="display:flex;align-items:center;gap:8px;margin-top:12px;">
         <input type="checkbox" id="applyAllSizesInput" style="width:auto;">
-        <span>Größenänderungen (Karte/Bild/Preis) per Ziehen auf alle Karten anwenden</span>
+        <span>Größenänderungen (Karte/Bild/Texte) per Ziehen auf alle Karten anwenden</span>
       </label>
       <div class="hint">Wenn aus: Ziehen an Karte, Bild oder Preis verändert nur diese eine Karte. Wenn an: wirkt sich sofort auf alle Karten aus.</div>
     </div>
@@ -1406,7 +1401,7 @@ function renderCard(p){
     <div class="drag-handle" title="Ziehen zum Sortieren">⠿⠿⠿</div>
     ${p.badge ? `<div class="badge" contenteditable="true" spellcheck="false">${escapeHtml(p.badge)}</div>` : ''}
     ${p.deposit ? `<div class="deposit" title="Pfandartikel">🧴</div>` : ''}
-    <div class="img-wrap ${p.transparent?'is-transparent':''}" style="height:${imgH}px">
+    <div class="img-wrap" style="height:${imgH}px">
       ${p.imgData ? `<img class="product-photo" src="${p.imgData}">` : `<div class="placeholder">Produktbild<br>klicken zum Auswählen</div>`}
       <div class="img-resize" title="Bildgröße ziehen"></div>
       ${p.imgData ? `<button class="remove-bg" title="Hintergrund entfernen (am besten bei hellem/weißem Hintergrund)">✂️ Hintergrund</button>` : ''}
@@ -1418,7 +1413,7 @@ function renderCard(p){
         ${p.oldPrice!==null ? `<div class="old-price" contenteditable="true" spellcheck="false">${euro(p.oldPrice)}</div>` : `<div class="old-price" contenteditable="true" spellcheck="false" style="opacity:.3"></div>`}
         ${p.deposit ? `<span class="unit-note">zzgl. Pfand</span>` : ''}
       </div>
-      <div class="price-new-col">${priceNewBlock}<div class="price-resize" title="Preisgröße ziehen"></div></div>
+      <div class="price-new-col">${priceNewBlock}<div class="price-resize" title="Textgröße (Name, Gebinde, Preise, Badge) ziehen"></div></div>
     </div>
     ${p.bundleQty>1 ? `<button class="unit-toggle" data-toggle="${p.id}">${toggleLabel}</button>` : ''}
     <div class="resize-handle" title="Kartengröße ziehen"></div>
@@ -1566,13 +1561,16 @@ function attachCardDnD(card, p){
   });
 }
 
-const PRICE_BASE = { newPrice:22, oldPrice:12, unitBig:22, unitNote:9 };
+const TEXT_BASE = { name:13, pack:10, badge:10, oldPrice:12, newPrice:22, unitBig:22, unitNote:9 };
 function applyPriceScale(cardEl, scale){
   const set = (sel, base)=>{ const el = cardEl.querySelector(sel); if(el) el.style.fontSize = Math.round(base*scale)+'px'; };
-  set('.new-price', PRICE_BASE.newPrice);
-  set('.old-price', PRICE_BASE.oldPrice);
-  set('.unit-price-display', PRICE_BASE.unitBig);
-  cardEl.querySelectorAll('.unit-note').forEach(el=> el.style.fontSize = Math.round(PRICE_BASE.unitNote*scale)+'px');
+  set('.name', TEXT_BASE.name);
+  set('.pack', TEXT_BASE.pack);
+  set('.badge', TEXT_BASE.badge);
+  set('.new-price', TEXT_BASE.newPrice);
+  set('.old-price', TEXT_BASE.oldPrice);
+  set('.unit-price-display', TEXT_BASE.unitBig);
+  cardEl.querySelectorAll('.unit-note').forEach(el=> el.style.fontSize = Math.round(TEXT_BASE.unitNote*scale)+'px');
 }
 function propagateSize(fields){
   if(!applyToAllSizes) return;
