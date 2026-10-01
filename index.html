@@ -106,7 +106,8 @@
     position:absolute;top:-8px;left:10px;background:#ffd23f;color:#5a3d00;font-size:10px;font-weight:800;
     padding:4px 8px;border-radius:6px;outline:none;box-shadow:0 1px 3px rgba(0,0,0,.15);
   }
-  .card .deposit{position:absolute;top:8px;right:10px;font-size:16px;}
+  .card .deposit{position:absolute;top:7px;right:9px;z-index:4;width:27px;height:31px;}
+  .card .deposit img{width:100%;height:100%;object-fit:contain;display:block;mix-blend-mode:multiply;}
   .card .img-wrap{
     background:#faf8f5;border-radius:10px;display:flex;align-items:center;justify-content:center;
     overflow:hidden;cursor:pointer;position:relative;margin-bottom:8px;
@@ -393,6 +394,23 @@
     </div>
 
     <div class="section">
+      <h2 data-step="7">Vorlage</h2>
+      <label>Design (Farben, Layout, Logos, Hintergründe) – ohne Produkte</label>
+      <div class="row">
+        <button id="btnSaveDesignCloud">☁️ In der Cloud speichern</button>
+        <button class="secondary" id="btnLoadDesignCloud">☁️ Aus Cloud laden</button>
+      </div>
+      <div class="hint">Einmal gespeichert, von jedem Gerät nach dem Login abrufbar – perfekt als Standard-Layout für künftige Aktionen.</div>
+      <label style="margin-top:14px;">Komplette Aktion als Datei (inkl. Produkte)</label>
+      <div class="row">
+        <button class="secondary" id="btnSaveTemplate">Datei speichern</button>
+        <button class="secondary" id="btnLoadTemplate">Datei laden</button>
+      </div>
+      <input type="file" id="templateInput" accept="application/json" style="display:none;">
+      <button class="block secondary" id="btnAddCard">+ Leere Karte hinzufügen</button>
+    </div>
+
+    <div class="section">
       <h2 data-step="2">Produktbilder</h2>
       <button class="block" id="btnPickFolder">📁 Bilder-Ordner hochladen / aktualisieren</button>
       <div class="hint">Wähle den Ordner, der bei dir das "B:\"-Laufwerk aus CAO ersetzt (mit den gleichen Unterordnern, z. B. Getränke/Dosen/...). Die Bilder werden dauerhaft in diesem Browser gespeichert (auch nach Neuladen der Seite) – du musst sie nur einmal hochladen und bei Änderungen erneut auswählen, dann werden alte Bilder ersetzt.</div>
@@ -516,22 +534,6 @@
       <input type="number" id="footerPadInput" value="10" min="4" max="50">
     </div>
 
-    <div class="section">
-      <h2 data-step="7">Vorlage</h2>
-      <label>Design (Farben, Layout, Logos, Hintergründe) – ohne Produkte</label>
-      <div class="row">
-        <button id="btnSaveDesignCloud">☁️ In der Cloud speichern</button>
-        <button class="secondary" id="btnLoadDesignCloud">☁️ Aus Cloud laden</button>
-      </div>
-      <div class="hint">Einmal gespeichert, von jedem Gerät nach dem Login abrufbar – perfekt als Standard-Layout für künftige Aktionen.</div>
-      <label style="margin-top:14px;">Komplette Aktion als Datei (inkl. Produkte)</label>
-      <div class="row">
-        <button class="secondary" id="btnSaveTemplate">Datei speichern</button>
-        <button class="secondary" id="btnLoadTemplate">Datei laden</button>
-      </div>
-      <input type="file" id="templateInput" accept="application/json" style="display:none;">
-      <button class="block secondary" id="btnAddCard">+ Leere Karte hinzufügen</button>
-    </div>
   </aside>
 
   <main id="workspace">
@@ -1499,7 +1501,7 @@ function renderCard(p){
   card.innerHTML = `
     <div class="drag-handle" title="Ziehen zum Sortieren">⠿⠿⠿</div>
     ${p.badge && !p.badgeHidden ? `<div class="badge" contenteditable="true" spellcheck="false">${escapeHtml(p.badge)}</div>` : ''}
-    ${p.deposit ? `<div class="deposit" title="Pfandartikel">🧴</div>` : ''}
+    ${p.deposit ? `<div class="deposit" title="Pfandartikel"><img class="deposit-icon" src="assets/pfand-icon.png" alt="Pfand"></div>` : ''}
     <div class="img-wrap" style="height:${imgH}px">
       ${p.imgData ? `<img class="product-photo" src="${p.imgData}">` : `<div class="placeholder">Produktbild<br>klicken zum Auswählen</div>`}
       ${hasPromo && promoStyle==='bubble' ? `<div class="promo-bubble" style="${promoVars}" title="Bild des Gratis-Artikels wählen">
@@ -1705,7 +1707,7 @@ function renderCard(p){
     tempPage.appendChild(wrap);
     tempPage.appendChild(buildFooterEl());
     document.body.appendChild(tempPage);
-    await Promise.all([preloadImage(p.imgData), preloadImage(p.promoImage)]);
+    await Promise.all([preloadImage(p.imgData), preloadImage(p.promoImage), preloadImage(p.deposit ? 'assets/pfand-icon.png' : null)]);
     try{
       const canvas = await html2canvas(tempPage, {scale:2, useCORS:true});
       const a = document.createElement('a');
@@ -1840,7 +1842,7 @@ document.getElementById('btnPrint').addEventListener('click', async ()=>{
     clone.style.margin = '0';
     clone.style.boxShadow = 'none';
     clone.querySelectorAll('.resize-handle, .img-resize, .remove-card, .card-controls, .drag-handle, .unit-toggle, .remove-bg, .price-resize, .add-promo, .remove-promo, .promo-style-controls').forEach(el=>el.remove());
-    clone.querySelectorAll('img.product-photo, .promo-img img, .promo-bubble-img img').forEach(el=>{
+    clone.querySelectorAll('img.product-photo, .promo-img img, .promo-bubble-img img, img.deposit-icon').forEach(el=>{
       if(el.src) imageUrls.add(el.src);
     });
     printRoot.appendChild(clone);
@@ -1862,7 +1864,7 @@ document.getElementById('btnPrint').addEventListener('click', async ()=>{
 document.getElementById('btnPng').addEventListener('click', async ()=>{
   syncDomToState();
   document.body.classList.add('exporting');
-  const imageUrls = [...document.querySelectorAll('#stage img.product-photo, #stage .promo-img img, #stage .promo-bubble-img img')]
+  const imageUrls = [...document.querySelectorAll('#stage img.product-photo, #stage .promo-img img, #stage .promo-bubble-img img, #stage img.deposit-icon')]
     .map(img=>img.src).filter(Boolean);
   await Promise.all(imageUrls.map(preloadImage));
   const pages = document.querySelectorAll('.page');
