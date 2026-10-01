@@ -201,6 +201,54 @@
   .page-footer .foot-text{flex:1;outline:none;min-width:160px;}
   .page-footer .legal{width:100%;font-size:9px;color:#bbb;outline:none;}
 
+  /* ---------- Layout 2: Kompakt-Katalog ---------- */
+  .page.layout-catalog{padding:10px 20px 14px;background:#fff;gap:0;}
+  .layout-catalog .catalog-header{flex:0 0 auto;min-height:132px;margin:0;padding:17px 28px;
+    border-radius:12px;background:linear-gradient(115deg,#ff8a00 0%,#ffc928 78%,#ef9b19 100%);
+    overflow:hidden;box-shadow:none;}
+  .catalog-header .catalog-headline{position:relative;z-index:2;flex:1;min-width:0;padding-right:115px;}
+  .catalog-header .title{font-size:61px;font-weight:900;line-height:.95;letter-spacing:-.045em;color:#fff;
+    outline:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .catalog-header .kicker{margin-top:12px;font-size:17px;font-weight:500;letter-spacing:.025em;color:rgba(255,255,255,.92);
+    outline:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .catalog-header .catalog-orb{position:absolute;right:-13px;top:-31px;width:146px;height:146px;border-radius:50%;
+    border:7px solid rgba(255,255,255,.95);box-shadow:inset 0 0 0 7px rgba(255,255,255,.72);overflow:hidden;
+    display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,#ffd246,#df7615);}
+  .catalog-header .catalog-orb img{width:100%;height:100%;object-fit:contain;padding:27px;background:transparent;border-radius:0;
+    filter:drop-shadow(0 3px 7px rgba(100,48,0,.22));cursor:pointer;}
+  .catalog-header .validity{position:absolute;right:15px;bottom:9px;z-index:3;background:rgba(255,255,255,.92);
+    min-width:104px;border-radius:999px;padding:5px 9px;font-size:9px;color:#573800;}
+  .catalog-header .validity .lbl{display:none;}
+  .catalog-groups{flex:1;display:flex;flex-direction:column;gap:17px;padding:23px 0 16px;align-content:start;}
+  .catalog-group{position:relative;border:2px solid #e5a23a;border-radius:14px;padding:18px 8px 8px;background:#fff;}
+  .catalog-group-title{position:absolute;left:34px;top:-17px;max-width:72%;background:#fff;padding:0 12px;
+    font-size:18px;font-weight:900;line-height:30px;color:#111;outline:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .catalog-items{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch;}
+  .layout-catalog .catalog-item{min-width:0;min-height:116px;border:0;border-radius:0;padding:8px 12px;background:transparent;
+    display:grid;grid-template-columns:43% 57%;grid-template-rows:1fr;gap:7px;box-shadow:none;}
+  .layout-catalog .catalog-item:not(:nth-child(3n)){border-right:1px solid #e7ae54;}
+  .layout-catalog .catalog-item:nth-child(n+4){border-top:1px solid #f1d6a9;}
+  .layout-catalog .catalog-item .img-wrap{height:91px !important;margin:0;background:transparent;border-radius:0;overflow:visible;}
+  .layout-catalog .catalog-item .img-wrap .product-photo{max-width:100%;max-height:91px;filter:drop-shadow(0 4px 5px rgba(0,0,0,.13));}
+  .layout-catalog .catalog-copy{min-width:0;display:flex;flex-direction:column;justify-content:center;}
+  .layout-catalog .catalog-item .name{font-size:12px;font-weight:900;line-height:1.12;min-height:0;}
+  .layout-catalog .catalog-item .pack{font-size:9px;color:#444;line-height:1.2;margin-top:4px;}
+  .layout-catalog .catalog-item .price-row{margin-top:5px;padding:0;display:block;}
+  .layout-catalog .catalog-item .new-price{display:flex;align-items:flex-start;font-size:31px;font-weight:950;line-height:.9;color:#111;letter-spacing:-.05em;}
+  .layout-catalog .catalog-item .new-price sup{font-size:15px;line-height:1;margin:1px 0 0 2px;letter-spacing:-.03em;}
+  .layout-catalog .catalog-item .new-price .currency{font-size:12px;line-height:1;margin:4px 0 0 2px;letter-spacing:0;}
+  .layout-catalog .catalog-item .old-price{display:inline-block;margin-top:4px;padding:1px 5px;border:1px solid #e9c98d;
+    border-radius:5px;background:#fffaf0;font-size:10px;color:#555;text-decoration:line-through;}
+  .layout-catalog .catalog-item .badge{top:1px;left:2px;font-size:8px;padding:3px 5px;}
+  .layout-catalog .catalog-item .deposit{top:3px;right:5px;width:19px;height:22px;}
+  .catalog-promo{margin-top:4px;padding:3px 5px;border-radius:5px;background:var(--promo-soft,#effaf4);
+    color:var(--promo-accent-ink,#117849);font-size:7px;font-weight:850;line-height:1.15;}
+  .layout-catalog .catalog-footer{min-height:58px;margin-top:auto;padding:9px 18px;border-radius:11px;
+    background:linear-gradient(105deg,#ff8a00,#ffc928);color:#fff;box-shadow:none;}
+  .layout-catalog .catalog-footer img{height:32px;max-width:150px;object-fit:contain;}
+  .layout-catalog .catalog-footer .foot-text{font-size:9px;font-weight:650;color:#fff;}
+  .layout-catalog .catalog-footer .legal{font-size:7px;color:rgba(255,255,255,.85);}
+
   .exporting .resize-handle, .exporting .img-resize, .exporting .remove-card,
   .exporting .card-controls, .exporting .drag-handle, .exporting .unit-toggle,
   .exporting .remove-bg, .exporting .price-resize, .exporting .add-promo, .exporting .remove-promo,
@@ -383,7 +431,7 @@
     <div class="section">
       <h2 data-step="1">Daten einfügen</h2>
       <label>Export aus Excel/CAO einfügen (mit Tab getrennt, erste Zeile = Spaltennamen)</label>
-      <textarea id="pasteArea" placeholder="Artikelbezeichnung&#9;Gebinde&#9;VK-Preis 1&#9;Aktionspreis VK1&#9;Pfand&#9;Artikelnummer&#9;Mengeneinheit&#9;Produktbild"></textarea>
+      <textarea id="pasteArea" placeholder="Kategorie&#9;Artikelbezeichnung&#9;Gebinde&#9;VK-Preis 1&#9;Aktionspreis VK1&#9;Pfand&#9;Artikelnummer&#9;Mengeneinheit&#9;Produktbild"></textarea>
       <button class="block" id="btnParse">Daten übernehmen</button>
       <div id="mappingBox" style="display:none;margin-top:8px;">
         <div class="hint">Spalten zuordnen (z. B. welcher VK-Preis der „Alte Preis" bzw. „Aktionspreis" ist):</div>
@@ -486,6 +534,12 @@
 
     <div class="section">
       <h2 data-step="5">Layout</h2>
+      <label>Layout-Vorlage</label>
+      <select id="layoutModeInput">
+        <option value="standard">1 · Standard-Aktionsblatt</option>
+        <option value="catalog">2 · Kompakt-Katalog</option>
+      </select>
+      <div class="hint">Beim Kompakt-Katalog wird die optionale Spalte „Kategorie“ als Gruppenüberschrift verwendet.</div>
       <label>Spalten pro Seite</label>
       <select id="colsInput"><option value="1">1</option><option value="2" selected>2</option><option value="3">3</option></select>
       <label>Karten pro Seite</label>
@@ -567,7 +621,7 @@ const state = {
   footer: { text: 'G.A.B GmbH · IZ NÖ-Süd Straße 14, 37B Obj. 37B A-2351 Wiener Neudorf ÖSTERREICH · Tel. +43 2236 50 60 65 · office@global-produktion.com',
             legal: 'Druckfehler vorbehalten. Alle Preise netto exkl. MwSt. Solange der Vorrat reicht.',
             bg: '#2b2320', bgImage: null, radius: 0, margin: 0, padY: 10 },
-  layout: { cols: 2, perPage: 6, cardSize: 100, imgSize: 100 },
+  layout: { mode: 'standard', cols: 2, perPage: 6, cardSize: 100, imgSize: 100 },
   products: [] // {id,name,pack,unit,oldPrice,newPrice,deposit,badge,ref,imgFileNorm,imgData,imgSource,transparent,bundleQty,perUnit,cardW,cardH,imgH}
 };
 let rawRows = null; // parsed paste rows before mapping confirmed
@@ -730,6 +784,7 @@ document.getElementById('btnParse').addEventListener('click', ()=>{
 
 const FIELD_DEFS = [
   {key:'name', label:'Bezeichnung', guesses:['artikelbezeichnung','bezeichnung','kurztext','langtext','produktname','name','artikel','produkt']},
+  {key:'category', label:'Kategorie / Gruppenüberschrift', guesses:['kategorie','warengruppe','produktgruppe','gruppe','rubrik','sortiment']},
   {key:'pack', label:'Gebinde', guesses:['gebinde','packungsgroesse','inhalt','pack','menge']},
   {key:'unit', label:'Einheit (Stk/Kolli/kg...)', guesses:['mengeneinheit','verkaufseinheit','einheit','vpe']},
   {key:'oldPrice', label:'Alter Preis (VK...)', guesses:['vkpreis5','vk5preis','vk5','alterpreis','altpreis','vorherigerpreis','vorher','ueblicherpreis','regulaerpreis','vkpreis1','vk1','alt']},
@@ -790,6 +845,7 @@ document.getElementById('btnApplyMapping').addEventListener('click', async ()=>{
     return {
       id: 'p'+(uid++),
       name: nameText,
+      category: get('category') || 'Angebote',
       pack: packText,
       unit: get('unit'),
       oldPrice: oldP, newPrice: newP,
@@ -1161,8 +1217,31 @@ document.getElementById('btnClearFooterBg').addEventListener('click', ()=>{
 
 /* ============================= LAYOUT ============================= */
 document.getElementById('applyAllSizesInput').addEventListener('change', (e)=>{ applyToAllSizes = e.target.checked; });
+document.getElementById('layoutModeInput').addEventListener('change', (e)=>{
+  state.layout.mode = e.target.value;
+  if(e.target.value === 'catalog'){
+    document.getElementById('colsInput').value = '3';
+    document.getElementById('perPageInput').value = '12';
+    state.layout.cols = 3;
+    state.layout.perPage = 12;
+    if(state.header.title === 'Aktion'){
+      state.header.title = 'Verpackung';
+      document.getElementById('titleInput').value = state.header.title;
+    }
+    if(state.header.kicker === 'ABHOLUNG UND LIEFERUNG'){
+      state.header.kicker = 'Preise sind nur bei Selbstabholung gültig';
+      document.getElementById('kickerInput').value = state.header.kicker;
+    }
+    if(state.header.bg2 === '#e8720c'){
+      state.header.bg2 = '#ffc928';
+      document.getElementById('headerBg2Input').value = state.header.bg2;
+    }
+  }
+  renderPages();
+});
 
 document.getElementById('btnApplyLayout').addEventListener('click', ()=>{
+  state.layout.mode = document.getElementById('layoutModeInput').value;
   state.layout.cols = parseInt(document.getElementById('colsInput').value,10);
   state.layout.perPage = parseInt(document.getElementById('perPageInput').value,10);
   state.layout.cardSize = parseInt(document.getElementById('cardSizeInput').value,10);
@@ -1173,7 +1252,7 @@ document.getElementById('btnApplyLayout').addEventListener('click', ()=>{
 
 document.getElementById('btnAddCard').addEventListener('click', ()=>{
   state.products.push({
-    id:'p'+(uid++), name:'Neues Produkt', pack:'', unit:'', oldPrice:null, newPrice:null,
+    id:'p'+(uid++), name:'Neues Produkt', category:'Angebote', pack:'', unit:'', oldPrice:null, newPrice:null,
     deposit:false, badge:'', badgeHidden:false, promoNote:'', promoCondition:'', promoStyle:'combo', promoColor:'green', promoImage:null,
     ref:'', imgFileNorm:'', imgRelNorm:'', imgData:null, imgSource:'none', transparent:false,
     bundleQty:null, perUnit:false, cardW:null, cardH:null, imgH:null
@@ -1184,6 +1263,11 @@ document.getElementById('btnAddCard').addEventListener('click', ()=>{
 
 /* ============================= TEMPLATE SAVE/LOAD ============================= */
 function applyLoadedDesignToInputs(){
+  document.getElementById('layoutModeInput').value = state.layout.mode || 'standard';
+  document.getElementById('colsInput').value = state.layout.cols || 2;
+  document.getElementById('perPageInput').value = state.layout.perPage || 6;
+  document.getElementById('cardSizeInput').value = state.layout.cardSize || 100;
+  document.getElementById('imgSizeInput').value = state.layout.imgSize || 100;
   document.getElementById('kickerInput').value = state.header.kicker;
   document.getElementById('titleInput').value = state.header.title;
   document.getElementById('titleFontInput').value = state.header.titleFont || '';
@@ -1292,6 +1376,8 @@ function syncDomToState(){
   });
   const headEls = document.querySelectorAll('.page-header .title');
   if(headEls[0]) state.header.title = headEls[0].textContent.trim();
+  const kickerEls = document.querySelectorAll('.page-header .kicker');
+  if(kickerEls[0]) state.header.kicker = kickerEls[0].textContent.trim();
   const valEls = document.querySelectorAll('.page-header .validity .val');
   if(valEls[0]) state.header.validity = valEls[0].textContent.trim();
   const footEls = document.querySelectorAll('.page-footer .foot-text');
@@ -1344,6 +1430,133 @@ function buildFooterEl(){
   return footer;
 }
 
+function buildCatalogHeaderEl(){
+  const header = document.createElement('div');
+  header.className = 'page-header catalog-header';
+  header.style.background = `linear-gradient(115deg, ${state.header.bg1||'#ff8a00'} 0%, ${state.header.bg2||'#ffc928'} 82%, #ef9b19 100%)`;
+  header.innerHTML = `
+    <div class="catalog-headline">
+      <div class="title" contenteditable="true" spellcheck="false" style="${state.header.titleFont ? 'font-family:'+state.header.titleFont+';' : ''}">${escapeHtml(state.header.title)}</div>
+      <div class="kicker" contenteditable="true" spellcheck="false">${escapeHtml(state.header.kicker)}</div>
+    </div>
+    <div class="catalog-orb"><img class="logo1" src="${state.brand.logo1||''}" alt="Logo"></div>
+    <div class="validity"><span class="lbl">GÜLTIG</span><span class="val" contenteditable="true" spellcheck="false">${escapeHtml(state.header.validity)}</span></div>
+  `;
+  header.querySelector('.logo1').addEventListener('click', ()=> document.getElementById('logo1Input').click());
+  return header;
+}
+
+function buildCatalogFooterEl(){
+  const footer = document.createElement('div');
+  footer.className = 'page-footer catalog-footer';
+  footer.style.background = `linear-gradient(105deg, ${state.header.bg1||'#ff8a00'}, ${state.header.bg2||'#ffc928'})`;
+  footer.innerHTML = `
+    <img src="${state.brand.logo2||''}" title="Klicken um Logo zu ändern">
+    <div class="foot-text" contenteditable="true" spellcheck="false">${escapeHtml(state.footer.text)}</div>
+    <div class="legal" contenteditable="true" spellcheck="false">${escapeHtml(state.footer.legal)}</div>
+  `;
+  footer.querySelector('img').addEventListener('click', ()=> document.getElementById('logo2Input').click());
+  return footer;
+}
+
+function catalogPromoVars(p){
+  return p.promoColor === 'yellow'
+    ? '--promo-soft:#fff9df;--promo-accent-ink:#795b00'
+    : '--promo-soft:#effaf4;--promo-accent-ink:#117849';
+}
+
+function catalogPriceHtml(value){
+  if(value===undefined || value===null || value==='') return '';
+  const n = parseNum(value);
+  if(n===null) return escapeHtml(value);
+  const parts = n.toFixed(2).replace('.',',').split(',');
+  return `${parts[0]},<sup>${parts[1]}</sup><span class="currency">€</span>`;
+}
+
+function renderCatalogItem(p){
+  const item = document.createElement('div');
+  item.className = 'card catalog-item';
+  item.dataset.id = p.id;
+  item.innerHTML = `
+    <div class="drag-handle" title="Ziehen zum Sortieren">⠿</div>
+    ${p.badge && !p.badgeHidden ? `<div class="badge" contenteditable="true" spellcheck="false">${escapeHtml(p.badge)}</div>` : ''}
+    ${p.deposit ? `<div class="deposit" title="Pfandartikel"><img class="deposit-icon" src="assets/pfand-icon.png" alt="Pfand"></div>` : ''}
+    <div class="img-wrap">
+      ${p.imgData ? `<img class="product-photo" src="${p.imgData}">` : `<div class="placeholder">Produktbild<br>anklicken</div>`}
+      ${p.imgData ? `<button class="remove-bg" title="Bildhintergrund entfernen">✂️</button>` : ''}
+    </div>
+    <div class="catalog-copy">
+      <div class="name" contenteditable="true" spellcheck="false">${escapeHtml(p.name)}</div>
+      <div class="pack" contenteditable="true" spellcheck="false">${escapeHtml(p.pack)}</div>
+      <div class="price-row">
+        <div class="new-price" contenteditable="true" spellcheck="false">${catalogPriceHtml(p.newPrice)}</div>
+        ${p.oldPrice!==null ? `<div class="old-price" contenteditable="true" spellcheck="false">${euro(p.oldPrice)}</div>` : `<div class="old-price" contenteditable="true" spellcheck="false" style="opacity:.25"></div>`}
+      </div>
+      ${p.promoNote ? `<div class="catalog-promo" style="${catalogPromoVars(p)}">${escapeHtml(p.promoNote)}</div>` : ''}
+    </div>
+    <div class="card-controls">
+      <button class="toggle-badge" title="Rabatt-Badge ein- oder ausblenden">%</button>
+      <button class="remove-card" title="Karte löschen">×</button>
+    </div>
+  `;
+  item.querySelector('.img-wrap').addEventListener('click', (e)=>{
+    if(e.target.classList.contains('remove-bg')) return;
+    pickImageForProductId = p.id;
+    document.getElementById('singleImageInput').click();
+  });
+  const removeBgBtn = item.querySelector('.remove-bg');
+  if(removeBgBtn){
+    removeBgBtn.addEventListener('click', async (e)=>{
+      e.stopPropagation();
+      removeBgBtn.textContent = '⏳';
+      try{ p.imgData = await removeWhiteBackground(p.imgData); p.transparent = true; }
+      catch(err){ alert('Hintergrund konnte nicht entfernt werden.'); }
+      renderPages();
+    });
+  }
+  item.querySelector('.toggle-badge').addEventListener('click', ()=>{
+    syncDomToState();
+    if(!p.badge){ p.badge='-10%'; p.badgeHidden=false; }
+    else p.badgeHidden = !p.badgeHidden;
+    renderPages(true);
+  });
+  item.querySelector('.remove-card').addEventListener('click', ()=>{
+    state.products = state.products.filter(x=>x.id!==p.id);
+    renderPages();
+    renderUnmatchedList();
+  });
+  attachCardDnD(item, p);
+  return item;
+}
+
+function buildCatalogGroupsEl(products){
+  const root = document.createElement('div');
+  root.className = 'catalog-groups';
+  const groups = new Map();
+  products.forEach(p=>{
+    const key = (p.category||'Angebote').trim() || 'Angebote';
+    if(!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(p);
+  });
+  groups.forEach((items, category)=>{
+    const group = document.createElement('section');
+    group.className = 'catalog-group';
+    const heading = document.createElement('div');
+    heading.className = 'catalog-group-title';
+    heading.contentEditable = 'true';
+    heading.spellcheck = false;
+    heading.textContent = category;
+    heading.addEventListener('input', ()=> items.forEach(p=>{ p.category = heading.textContent.trim() || 'Angebote'; }));
+    const grid = document.createElement('div');
+    grid.className = 'catalog-items';
+    items.forEach(p=> grid.appendChild(renderCatalogItem(p)));
+    group.appendChild(heading);
+    group.appendChild(grid);
+    root.appendChild(group);
+  });
+  return root;
+}
+
 function renderPages(skipSync){
   if(!skipSync) syncDomToState();
   const stage = document.getElementById('stage');
@@ -1367,7 +1580,8 @@ function renderPages(skipSync){
   for(let pi=0; pi<pageCount; pi++){
     const pageProducts = products.slice(pi*perPage, (pi+1)*perPage);
     const page = document.createElement('div');
-    page.className = 'page';
+    const catalogMode = state.layout.mode === 'catalog';
+    page.className = catalogMode ? 'page layout-catalog' : 'page';
     if(state.brand.pageBg){
       page.style.backgroundImage = `url(${state.brand.pageBg})`;
       page.style.backgroundSize = '100% 100%';
@@ -1376,17 +1590,19 @@ function renderPages(skipSync){
     }
 
     // header
-    page.appendChild(buildHeaderEl());
+    page.appendChild(catalogMode ? buildCatalogHeaderEl() : buildHeaderEl());
 
-    // cards
-    const wrap = document.createElement('div');
-    wrap.className = 'cards-wrap';
-    wrap.style.gridTemplateColumns = `repeat(${state.layout.cols}, 1fr)`;
-    pageProducts.forEach(p=> wrap.appendChild(renderCard(p)) );
-    page.appendChild(wrap);
+    if(catalogMode){
+      page.appendChild(buildCatalogGroupsEl(pageProducts));
+    }else{
+      const wrap = document.createElement('div');
+      wrap.className = 'cards-wrap';
+      wrap.style.gridTemplateColumns = `repeat(${state.layout.cols}, 1fr)`;
+      pageProducts.forEach(p=> wrap.appendChild(renderCard(p)) );
+      page.appendChild(wrap);
+    }
 
-    // footer
-    page.appendChild(buildFooterEl());
+    page.appendChild(catalogMode ? buildCatalogFooterEl() : buildFooterEl());
 
     const pageShell = document.createElement('div');
     pageShell.className = 'page-shell';
