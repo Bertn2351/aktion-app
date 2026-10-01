@@ -130,15 +130,40 @@
   .card .add-promo{display:none;margin-top:6px;background:#fff6e5;color:#a67a1a;border:1px dashed #e6c171;
     border-radius:6px;padding:4px 8px;font-size:10px;font-weight:700;align-self:flex-start;}
   .card:hover .add-promo{display:inline-block;}
-  .card .promo-note-row{display:flex;align-items:center;gap:9px;margin-top:8px;position:relative;
-    background:#fffaf2;border:2px dashed var(--promo-bg,var(--orange));border-radius:11px;padding:6px 10px 6px 6px;}
-  .card .promo-note{flex:1;background:transparent;color:#6b3d00;border:none;
-    padding:0;font-size:10px;font-weight:800;outline:none;line-height:1.3;}
+  .card .promo-style-controls{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:7px;
+    color:#8a7154;font-size:8px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;}
+  .card .promo-style-select{min-width:0;max-width:112px;border:1px solid #ead7b7;background:#fffaf2;color:#704616;
+    border-radius:999px;padding:3px 7px;font-family:inherit;font-size:8px;font-weight:700;line-height:1.2;outline:none;cursor:pointer;}
+  .card .promo-note-row{margin-top:4px;position:relative;background:#fffaf2;
+    border:2px solid var(--promo-bg,var(--orange));border-radius:11px;}
+  .card .promo-note{background:transparent;color:#6b3d00;border:none;padding:0;font-size:9px;
+    font-weight:800;outline:none;line-height:1.25;}
   .card .promo-img{width:32px;height:32px;flex:0 0 auto;border-radius:50%;
     background:var(--promo-bg,var(--orange));box-shadow:0 0 0 2px #fffaf2,0 0 0 4px var(--promo-bg,var(--orange));
     display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;color:#fff;
     font-size:15px;}
   .card .promo-img img{max-width:100%;max-height:100%;display:block;}
+  .card .promo-combo{padding:7px;}
+  .card .promo-combo-main{display:flex;align-items:center;justify-content:center;gap:7px;min-width:0;}
+  .card .promo-condition{min-width:0;max-width:43%;background:var(--promo-bg,var(--orange));color:#fff;
+    border-radius:7px;padding:5px 7px;font-size:9px;font-weight:900;line-height:1.05;text-align:center;outline:none;}
+  .card .promo-plus{font-size:16px;font-weight:900;color:var(--promo-bg,var(--orange));line-height:1;}
+  .card .promo-free{background:#19a661;color:#fff;border-radius:999px;padding:4px 7px;font-size:8px;
+    font-weight:900;letter-spacing:.04em;box-shadow:0 2px 6px rgba(25,166,97,.2);}
+  .card .promo-combo .promo-note{display:block;margin-top:7px;padding-top:6px;border-top:1px dashed #e7cda5;text-align:center;}
+  .card .promo-bubble{position:absolute;right:8px;top:7px;z-index:3;display:flex;flex-direction:column;
+    align-items:center;filter:drop-shadow(0 4px 7px rgba(89,53,17,.23));cursor:pointer;}
+  .card .promo-bubble-img{width:58px;height:58px;border-radius:50%;background:#fffaf2;
+    border:4px solid var(--promo-bg,var(--orange));display:flex;align-items:center;justify-content:center;overflow:hidden;
+    color:var(--promo-bg,var(--orange));font-size:23px;box-shadow:inset 0 0 0 3px #fff;}
+  .card .promo-bubble-img img{width:100%;height:100%;object-fit:contain;}
+  .card .promo-bubble-label{margin-top:-7px;background:#19a661;color:#fff;border-radius:999px;padding:4px 9px;
+    font-size:8px;font-weight:900;letter-spacing:.05em;border:2px solid #fff;white-space:nowrap;}
+  .card .promo-bubble-strip{padding:7px 10px;border:none;background:linear-gradient(105deg,#fff0d7,#fffaf2);
+    border-left:5px solid var(--promo-bg,var(--orange));}
+  .card .promo-bubble-strip .promo-condition{display:block;max-width:none;background:transparent;color:var(--promo-bg,var(--orange));
+    padding:0 0 2px;border-radius:0;text-align:left;font-size:8px;letter-spacing:.08em;}
+  .card .promo-bubble-strip .promo-note{display:block;color:#30221a;font-size:10px;}
   .card .remove-promo{display:none;position:absolute;top:-6px;right:-6px;background:var(--danger);color:#fff;
     width:16px;height:16px;border-radius:50%;font-size:10px;line-height:16px;text-align:center;padding:0;}
   .card:hover .remove-promo{display:block;}
@@ -169,7 +194,8 @@
 
   .exporting .resize-handle, .exporting .img-resize, .exporting .remove-card,
   .exporting .card-controls, .exporting .drag-handle, .exporting .unit-toggle,
-  .exporting .remove-bg, .exporting .price-resize, .exporting .add-promo, .exporting .remove-promo{display:none !important;}
+  .exporting .remove-bg, .exporting .price-resize, .exporting .add-promo, .exporting .remove-promo,
+  .exporting .promo-style-controls{display:none !important;}
   .sub-price-line{font-size:9px;color:#aaa;text-align:right;margin-top:1px;}
 
   #printRoot{display:none;}
@@ -759,7 +785,8 @@ document.getElementById('btnApplyMapping').addEventListener('click', async ()=>{
       oldPrice: oldP, newPrice: newP,
       deposit: parseBool(get('deposit')),
       badge: badge,
-      promoNote: get('promoNote'), promoImage: null,
+      promoNote: get('promoNote'), promoCondition: get('promoNote') ? '2 KOLLI KAUFEN' : '',
+      promoStyle: 'combo', promoImage: null,
       ref: get('ref'),
       imgFileNorm: normalize(basename(get('imgFile')).replace(/\.[^.]+$/,'')),
       imgRelNorm: normalize(stripDriveLetter(get('imgFile')).replace(/\\/g,'/').replace(/\.[^.]+$/,'')),
@@ -1132,7 +1159,8 @@ document.getElementById('btnApplyLayout').addEventListener('click', ()=>{
 document.getElementById('btnAddCard').addEventListener('click', ()=>{
   state.products.push({
     id:'p'+(uid++), name:'Neues Produkt', pack:'', unit:'', oldPrice:null, newPrice:null,
-    deposit:false, badge:'', promoNote:'', promoImage:null, ref:'', imgFileNorm:'', imgRelNorm:'', imgData:null, imgSource:'none', transparent:false,
+    deposit:false, badge:'', promoNote:'', promoCondition:'', promoStyle:'combo', promoImage:null,
+    ref:'', imgFileNorm:'', imgRelNorm:'', imgData:null, imgSource:'none', transparent:false,
     bundleQty:null, perUnit:false, cardW:null, cardH:null, imgH:null
   });
   renderPages();
@@ -1238,12 +1266,14 @@ function syncDomToState(){
     const newEl = cardEl.querySelector('.new-price');
     const badgeEl = cardEl.querySelector('.badge');
     const promoEl = cardEl.querySelector('.promo-note');
+    const promoConditionEl = cardEl.querySelector('.promo-condition');
     if(nameEl) p.name = nameEl.textContent.trim();
     if(packEl) p.pack = packEl.textContent.trim();
     if(newEl) p.newPrice = parseNum(newEl.textContent);
     if(oldEl) p.oldPrice = parseNum(oldEl.textContent);
     if(badgeEl) p.badge = badgeEl.textContent.trim();
     if(promoEl) p.promoNote = promoEl.textContent.trim();
+    if(promoConditionEl) p.promoCondition = promoConditionEl.textContent.trim();
   });
   const headEls = document.querySelectorAll('.page-header .title');
   if(headEls[0]) state.header.title = headEls[0].textContent.trim();
@@ -1429,6 +1459,10 @@ function renderCard(p){
 
   const imgH = p.imgH || (110 * (state.layout.imgSize/100));
   const bundleActive = !!(p.perUnit && p.bundleQty>1);
+  const hasPromo = !!p.promoNote;
+  const promoStyle = p.promoStyle === 'bubble' ? 'bubble' : 'combo';
+  const promoCondition = p.promoCondition || '2 KOLLI KAUFEN';
+  const promoImage = p.promoImage ? `<img src="${p.promoImage}" alt="Gratis-Artikel">` : '🎁';
 
   let priceNewBlock;
   if(bundleActive && p.newPrice!==null){
@@ -1450,6 +1484,9 @@ function renderCard(p){
     ${p.deposit ? `<div class="deposit" title="Pfandartikel">🧴</div>` : ''}
     <div class="img-wrap" style="height:${imgH}px">
       ${p.imgData ? `<img class="product-photo" src="${p.imgData}">` : `<div class="placeholder">Produktbild<br>klicken zum Auswählen</div>`}
+      ${hasPromo && promoStyle==='bubble' ? `<div class="promo-bubble" style="--promo-bg:${state.header.bg1||'#f7941e'}" title="Bild des Gratis-Artikels wählen">
+        <div class="promo-bubble-img">${promoImage}</div><span class="promo-bubble-label">1× GRATIS</span>
+      </div>` : ''}
       <div class="img-resize" title="Bildgröße ziehen"></div>
       ${p.imgData ? `<button class="remove-bg" title="Hintergrund entfernen (am besten bei hellem/weißem Hintergrund)">✂️ Hintergrund</button>` : ''}
     </div>
@@ -1463,11 +1500,27 @@ function renderCard(p){
       <div class="price-new-col">${priceNewBlock}<div class="price-resize" title="Textgröße (Name, Gebinde, Preise, Badge) ziehen"></div></div>
     </div>
     ${p.bundleQty>1 ? `<button class="unit-toggle" data-toggle="${p.id}">${toggleLabel}</button>` : ''}
-    ${p.promoNote ? `<div class="promo-note-row" style="--promo-bg:${state.header.bg1||'#f7941e'}">
-      <div class="promo-img" title="Bild für Hinweis wählen (z. B. Gratis-Artikel)">${p.promoImage ? `<img src="${p.promoImage}">` : '🎁'}</div>
+    ${hasPromo ? `<div class="promo-style-controls">
+      <span>Geschenk-Design</span>
+      <select class="promo-style-select" aria-label="Geschenk-Design auswählen">
+        <option value="combo" ${promoStyle==='combo'?'selected':''}>Kombi-Box</option>
+        <option value="bubble" ${promoStyle==='bubble'?'selected':''}>Gratis-Bubble</option>
+      </select>
+    </div>
+    ${promoStyle==='combo' ? `<div class="promo-note-row promo-combo" style="--promo-bg:${state.header.bg1||'#f7941e'}">
+      <div class="promo-combo-main">
+        <div class="promo-condition" contenteditable="true" spellcheck="false">${escapeHtml(promoCondition)}</div>
+        <div class="promo-plus">+</div>
+        <div class="promo-img" title="Bild des Gratis-Artikels wählen">${promoImage}</div>
+        <div class="promo-free">GRATIS</div>
+      </div>
       <div class="promo-note" contenteditable="true" spellcheck="false">${escapeHtml(p.promoNote)}</div>
-      <button class="remove-promo" title="Hinweis entfernen">×</button>
-    </div>` : `<button class="add-promo" title="Sonderhinweis hinzufügen (z. B. Ab 2 Kolli: ... gratis)">+ Hinweis</button>`}
+      <button class="remove-promo" title="Geschenk-Aktion entfernen">×</button>
+    </div>` : `<div class="promo-note-row promo-bubble-strip" style="--promo-bg:${state.header.bg1||'#f7941e'}">
+      <div class="promo-condition" contenteditable="true" spellcheck="false">${escapeHtml(promoCondition)}</div>
+      <div class="promo-note" contenteditable="true" spellcheck="false">${escapeHtml(p.promoNote)}</div>
+      <button class="remove-promo" title="Geschenk-Aktion entfernen">×</button>
+    </div>`}` : `<button class="add-promo" title="Geschenk-Aktion hinzufügen (z. B. 2 Kolli kaufen + Servietten gratis)">+ Geschenk-Aktion</button>`}
     <div class="resize-handle" title="Kartengröße ziehen"></div>
     <div class="card-controls">
       <button class="save-card" title="Diese Karte als Bild speichern">💾</button>
@@ -1477,7 +1530,7 @@ function renderCard(p){
   if(p.priceScale && p.priceScale!==1) applyPriceScale(card, p.priceScale);
 
   card.querySelector('.img-wrap').addEventListener('click', (e)=>{
-    if(e.target.classList.contains('img-resize') || e.target.classList.contains('remove-bg')) return;
+    if(e.target.classList.contains('img-resize') || e.target.classList.contains('remove-bg') || e.target.closest('.promo-bubble')) return;
     pickImageForProductId = p.id;
     document.getElementById('singleImageInput').click();
   });
@@ -1497,7 +1550,17 @@ function renderCard(p){
   if(addPromoBtn){
     addPromoBtn.addEventListener('click', ()=>{
       syncDomToState();
-      p.promoNote = 'Hinweis eingeben…';
+      p.promoCondition = '2 KOLLI KAUFEN';
+      p.promoNote = '1 PACKUNG SERVIETTEN GRATIS';
+      p.promoStyle = 'combo';
+      renderPages(true);
+    });
+  }
+  const promoStyleSelect = card.querySelector('.promo-style-select');
+  if(promoStyleSelect){
+    promoStyleSelect.addEventListener('change', ()=>{
+      syncDomToState();
+      p.promoStyle = promoStyleSelect.value;
       renderPages(true);
     });
   }
@@ -1506,6 +1569,7 @@ function renderCard(p){
     removePromoBtn.addEventListener('click', ()=>{
       syncDomToState();
       p.promoNote = '';
+      p.promoCondition = '';
       p.promoImage = null;
       renderPages(true);
     });
@@ -1513,6 +1577,14 @@ function renderCard(p){
   const promoImgEl = card.querySelector('.promo-img');
   if(promoImgEl){
     promoImgEl.addEventListener('click', ()=>{
+      pickPromoImageForProductId = p.id;
+      document.getElementById('promoImageInput').click();
+    });
+  }
+  const promoBubbleEl = card.querySelector('.promo-bubble');
+  if(promoBubbleEl){
+    promoBubbleEl.addEventListener('click', (e)=>{
+      e.stopPropagation();
       pickPromoImageForProductId = p.id;
       document.getElementById('promoImageInput').click();
     });
@@ -1568,14 +1640,22 @@ function renderCard(p){
       bigPromoRow.style.borderRadius = '12px';
       const bigPromoNote = bigPromoRow.querySelector('.promo-note');
       if(bigPromoNote) bigPromoNote.style.fontSize = '20px';
+      const bigPromoCondition = bigPromoRow.querySelector('.promo-condition');
+      if(bigPromoCondition) bigPromoCondition.style.fontSize = '18px';
       const bigPromoImg = bigPromoRow.querySelector('.promo-img');
       if(bigPromoImg){ bigPromoImg.style.width = '56px'; bigPromoImg.style.height = '56px'; bigPromoImg.style.fontSize = '26px'; }
+      const bigPromoFree = bigPromoRow.querySelector('.promo-free');
+      if(bigPromoFree) bigPromoFree.style.fontSize = '16px';
     }
+    const bigPromoBubble = bigCard.querySelector('.promo-bubble-img');
+    if(bigPromoBubble){ bigPromoBubble.style.width = '105px'; bigPromoBubble.style.height = '105px'; bigPromoBubble.style.fontSize = '40px'; }
+    const bigPromoBubbleLabel = bigCard.querySelector('.promo-bubble-label');
+    if(bigPromoBubbleLabel) bigPromoBubbleLabel.style.fontSize = '15px';
     wrap.appendChild(bigCard);
     tempPage.appendChild(wrap);
     tempPage.appendChild(buildFooterEl());
     document.body.appendChild(tempPage);
-    await preloadImage(p.imgData);
+    await Promise.all([preloadImage(p.imgData), preloadImage(p.promoImage)]);
     try{
       const canvas = await html2canvas(tempPage, {scale:2, useCORS:true});
       const a = document.createElement('a');
@@ -1709,8 +1789,8 @@ document.getElementById('btnPrint').addEventListener('click', async ()=>{
     clone.style.transform = 'none';
     clone.style.margin = '0';
     clone.style.boxShadow = 'none';
-    clone.querySelectorAll('.resize-handle, .img-resize, .remove-card, .card-controls, .drag-handle, .unit-toggle, .remove-bg, .price-resize, .add-promo, .remove-promo').forEach(el=>el.remove());
-    clone.querySelectorAll('img.product-photo').forEach(el=>{
+    clone.querySelectorAll('.resize-handle, .img-resize, .remove-card, .card-controls, .drag-handle, .unit-toggle, .remove-bg, .price-resize, .add-promo, .remove-promo, .promo-style-controls').forEach(el=>el.remove());
+    clone.querySelectorAll('img.product-photo, .promo-img img, .promo-bubble-img img').forEach(el=>{
       if(el.src) imageUrls.add(el.src);
     });
     printRoot.appendChild(clone);
@@ -1732,6 +1812,9 @@ document.getElementById('btnPrint').addEventListener('click', async ()=>{
 document.getElementById('btnPng').addEventListener('click', async ()=>{
   syncDomToState();
   document.body.classList.add('exporting');
+  const imageUrls = [...document.querySelectorAll('#stage img.product-photo, #stage .promo-img img, #stage .promo-bubble-img img')]
+    .map(img=>img.src).filter(Boolean);
+  await Promise.all(imageUrls.map(preloadImage));
   const pages = document.querySelectorAll('.page');
   for(let i=0;i<pages.length;i++){
     const canvas = await html2canvas(pages[i], {scale:2, useCORS:true});
