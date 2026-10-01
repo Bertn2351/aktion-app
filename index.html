@@ -225,11 +225,13 @@
     font-size:18px;font-weight:900;line-height:30px;color:#111;outline:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .catalog-items{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch;}
   .catalog-single-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:26px 24px;align-items:stretch;}
+  .catalog-single-title{position:absolute;left:14px;top:-18px;z-index:4;max-width:calc(100% - 28px);padding:0 8px;background:#fff;
+    color:#111;font-size:12px;font-weight:900;line-height:28px;outline:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .layout-catalog .catalog-item{min-width:0;min-height:116px;border:0;border-radius:0;padding:8px 12px;background:transparent;
     display:grid;grid-template-columns:43% 57%;grid-template-rows:1fr;gap:7px;box-shadow:none;}
   .layout-catalog .catalog-item:not(:nth-child(3n)){border-right:1px solid #e7ae54;}
   .layout-catalog .catalog-item:nth-child(n+4){border-top:1px solid #f1d6a9;}
-  .layout-catalog .catalog-single-row .catalog-item{min-height:126px;border:2px solid #e5a23a;border-radius:13px;padding:10px 12px;background:#fff;}
+  .layout-catalog .catalog-single-row .catalog-item{min-height:126px;margin-top:9px;border:2px solid #e5a23a;border-radius:13px;padding:14px 12px 10px;background:#fff;}
   .layout-catalog .catalog-single-row .catalog-item:nth-child(n+4){border-top:2px solid #e5a23a;}
   .layout-catalog .catalog-item .img-wrap{height:91px !important;margin:0;background:transparent;border-radius:0;overflow:visible;}
   .layout-catalog .catalog-item .img-wrap .product-photo{max-width:100%;max-height:91px;filter:drop-shadow(0 4px 5px rgba(0,0,0,.13));}
@@ -1575,6 +1577,13 @@ function buildCatalogGroupsEl(products){
       }
       const singleItem = renderCatalogItem(items[0]);
       singleItem.classList.add('catalog-single-card');
+      const singleTitle = document.createElement('div');
+      singleTitle.className = 'catalog-single-title';
+      singleTitle.contentEditable = 'true';
+      singleTitle.spellcheck = false;
+      singleTitle.textContent = category;
+      singleTitle.addEventListener('input', ()=>{ items[0].category = singleTitle.textContent.trim(); });
+      singleItem.prepend(singleTitle);
       singles.appendChild(singleItem);
       return;
     }
