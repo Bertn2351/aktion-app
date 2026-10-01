@@ -35,9 +35,6 @@
   .brand-mark svg{width:21px;height:21px;}
   .brand-copy strong{display:block;font-size:15px;letter-spacing:-.015em;}
   .brand-copy span{display:block;color:var(--muted);font-size:11px;margin-top:2px;}
-  .workflow{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:14px;}
-  .workflow span{padding:6px 4px;border-radius:7px;background:#fff;border:1px solid var(--panel-border);font-size:9px;font-weight:750;color:#777d87;text-align:center;letter-spacing:.02em;}
-  .workflow span:first-child{background:var(--orange-soft);border-color:#ffd4a2;color:var(--orange-dark);}
   .rightbar-head{position:sticky;top:0;z-index:4;margin:0 -14px 16px;padding:18px 14px;background:rgba(246,247,249,.94);border-bottom:1px solid var(--panel-border);backdrop-filter:blur(14px);}
   .rightbar-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;}
   .rightbar-title strong{font-size:15px;letter-spacing:-.015em;}
@@ -352,7 +349,6 @@
     .brand-mark{width:34px;height:34px;border-radius:9px;}
     .brand-copy strong{font-size:14px;}
     .brand-copy span{font-size:10px;}
-    .workflow{margin-top:10px;}
     .section{padding:13px;margin-bottom:9px;border-radius:12px;}
     .section h2{cursor:pointer;margin:0;min-height:30px;user-select:none;}
     .section h2::after{content:"−";margin-left:auto;width:25px;height:25px;border-radius:8px;background:#f3f4f6;color:#6f7580;display:grid;place-items:center;font-size:16px;font-weight:500;}
@@ -458,7 +454,6 @@
         </div>
         <div class="brand-copy"><strong>AktionsStudio</strong><span>Aktionsblätter einfach gestalten</span></div>
       </div>
-      <div class="workflow"><span>1 · Daten</span><span>2 · Gestalten</span><span>3 · Export</span></div>
       <div class="panel-tabs" aria-label="Schnellzugriff links">
         <button type="button" class="active" data-panel-target="panel-data">Daten</button>
         <button type="button" data-panel-target="panel-images">Bilder</button>
@@ -1455,12 +1450,38 @@ async function refreshQuickFormOptions(selectPath){
       limit:100, sortBy:{column:'name',order:'asc'}
     });
     if(error) throw error;
-    (data||[]).filter(item=>item.name && item.name.endsWith('.json')).forEach(item=>{
+    const formFiles = (data||[]).filter(item=>item.name && item.name.endsWith('.json'));
+    const newestByName = new Map();
+    const duplicates = [];
+    formFiles.forEach(item=>{
+      const label = item.name.replace(/\.json$/i,'').replace(/_/g,' ').replace(/\s+/g,' ').trim();
+      const key = label.toLocaleLowerCase('de-DE');
+      const existing = newestByName.get(key);
+      if(!existing){
+        newestByName.set(key, {item,label});
+        return;
+      }
+      const existingTime = Date.parse(existing.item.updated_at || existing.item.created_at || '') || 0;
+      const itemTime = Date.parse(item.updated_at || item.created_at || '') || 0;
+      if(itemTime > existingTime){
+        duplicates.push(existing.item);
+        newestByName.set(key, {item,label});
+      }else{
+        duplicates.push(item);
+      }
+    });
+    [...newestByName.values()].sort((a,b)=>a.label.localeCompare(b.label,'de')).forEach(({item,label})=>{
       const option = document.createElement('option');
       option.value = FORM_TEMPLATES_FOLDER + '/' + item.name;
-      option.textContent = item.name.replace(/\.json$/i,'').replace(/_/g,' ');
+      option.textContent = label;
       select.appendChild(option);
     });
+    if(duplicates.length){
+      const paths = duplicates.map(item=>FORM_TEMPLATES_FOLDER + '/' + item.name);
+      const { error:cleanupError } = await sb.storage.from(BUCKET).remove(paths);
+      if(cleanupError) console.warn('Doppelte Formulare konnten nicht entfernt werden:', cleanupError);
+      else console.info('Doppelte Formulare entfernt:', paths);
+    }
   }catch(err){
     console.warn('Formularliste konnte nicht geladen werden:', err);
   }
