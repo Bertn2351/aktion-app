@@ -132,11 +132,14 @@
   .card:hover .add-promo{display:inline-block;}
   .card .promo-style-controls{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:7px;
     color:#8a7154;font-size:8px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;}
+  .card .promo-selects{display:flex;align-items:center;gap:4px;}
   .card .promo-style-select{min-width:0;max-width:112px;border:1px solid #ead7b7;background:#fffaf2;color:#704616;
     border-radius:999px;padding:3px 7px;font-family:inherit;font-size:8px;font-weight:700;line-height:1.2;outline:none;cursor:pointer;}
+  .card .promo-color-select{max-width:58px;border:1px solid #d8ded7;background:#f7fbf8;color:#365346;
+    border-radius:999px;padding:3px 5px;font-family:inherit;font-size:8px;font-weight:700;line-height:1.2;outline:none;cursor:pointer;}
   .card .promo-note-row{margin-top:5px;position:relative;background:#fffaf2;
     border:2px solid var(--promo-bg,var(--orange));border-radius:13px;overflow:visible;}
-  .card .promo-note{background:transparent;color:#6b3d00;border:none;padding:0;font-size:9px;
+  .card .promo-note{background:transparent;color:var(--promo-accent-ink,#117849);border:none;padding:0;font-size:9px;
     font-weight:800;outline:none;line-height:1.25;}
   .card .promo-img{position:absolute;left:50%;top:0;z-index:2;transform:translate(-50%,-50%);
     width:84px;height:84px;border:0;border-radius:0;background:transparent;box-shadow:none;
@@ -144,30 +147,30 @@
     font-size:30px;padding:0;}
   .card .promo-img img{width:100%;height:100%;object-fit:contain;display:block;
     filter:drop-shadow(0 6px 7px rgba(72,48,25,.22));}
-  .card .promo-combo{margin-top:46px;padding:9px 10px 0;background:linear-gradient(135deg,#fffaf2 0%,#fff 100%);}
+  .card .promo-combo{margin-top:46px;padding:9px 10px 0;background:linear-gradient(135deg,var(--promo-soft,#effaf4) 0%,#fff 100%);}
   .card .promo-combo-main{display:grid;grid-template-columns:minmax(0,1fr) 92px minmax(0,1fr);
     align-items:center;gap:5px;min-width:0;min-height:53px;}
-  .card .promo-condition{min-width:0;max-width:none;background:linear-gradient(135deg,var(--promo-bg,var(--orange)),#e9780b);color:#fff;
+  .card .promo-condition{min-width:0;max-width:none;background:var(--promo-bg,#16945b);color:var(--promo-accent-text,#fff);
     grid-column:1;border-radius:8px;padding:6px 7px;font-size:9px;font-weight:900;line-height:1.15;text-align:center;outline:none;
     box-shadow:0 4px 10px rgba(231,120,11,.2);}
   .card .promo-plus{position:absolute;left:calc(50% - 54px);top:14px;font-size:17px;font-weight:900;
     color:var(--promo-bg,var(--orange));line-height:1;text-align:center;}
-  .card .promo-free{grid-column:3;justify-self:center;background:#19a661;color:#fff;border-radius:999px;padding:4px 7px;font-size:8px;
+  .card .promo-free{grid-column:3;justify-self:center;background:var(--promo-free-bg,#19a661);color:var(--promo-free-text,#fff);border-radius:999px;padding:4px 7px;font-size:8px;
     font-weight:900;letter-spacing:.04em;box-shadow:0 3px 8px rgba(25,166,97,.24);white-space:nowrap;}
-  .card .promo-combo .promo-note{display:block;margin:8px -10px 0;padding:7px 10px 8px;border-top:1px dashed #e7cda5;
-    border-radius:0 0 11px 11px;background:#fff6e8;text-align:center;font-size:10px;}
+  .card .promo-combo .promo-note{display:block;margin:8px -10px 0;padding:7px 10px 8px;border-top:1px dashed var(--promo-bg,#16945b);
+    border-radius:0 0 11px 11px;background:var(--promo-soft,#effaf4);text-align:center;font-size:10px;}
   .card .promo-bubble{position:absolute;right:8px;top:7px;z-index:3;display:flex;flex-direction:column;
     align-items:center;filter:drop-shadow(0 4px 7px rgba(89,53,17,.23));cursor:pointer;}
   .card .promo-bubble-img{width:86px;height:86px;border:0;border-radius:0;background:transparent;
     display:flex;align-items:center;justify-content:center;overflow:visible;color:var(--promo-bg,var(--orange));font-size:28px;box-shadow:none;}
   .card .promo-bubble-img img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 6px 7px rgba(72,48,25,.22));}
-  .card .promo-bubble-label{margin-top:-9px;background:#19a661;color:#fff;border-radius:999px;padding:5px 10px;
+  .card .promo-bubble-label{margin-top:-9px;background:var(--promo-free-bg,#19a661);color:var(--promo-free-text,#fff);border-radius:999px;padding:5px 10px;
     font-size:9px;font-weight:900;letter-spacing:.05em;border:2px solid #fff;white-space:nowrap;}
-  .card .promo-bubble-strip{padding:9px 11px;border:none;background:linear-gradient(105deg,#fff0d7,#fffaf2);
+  .card .promo-bubble-strip{padding:9px 11px;border:none;background:linear-gradient(105deg,var(--promo-soft,#effaf4),#fff);
     border-left:5px solid var(--promo-bg,var(--orange));}
-  .card .promo-bubble-strip .promo-condition{display:block;max-width:none;background:transparent;color:var(--promo-bg,var(--orange));
+  .card .promo-bubble-strip .promo-condition{display:block;max-width:none;background:transparent;color:var(--promo-accent-ink,#117849);
     padding:0 0 2px;border-radius:0;text-align:left;font-size:8px;letter-spacing:.08em;}
-  .card .promo-bubble-strip .promo-note{display:block;color:#30221a;font-size:11px;}
+  .card .promo-bubble-strip .promo-note{display:block;color:var(--promo-accent-ink,#117849);font-size:11px;}
   .card .remove-promo{display:none;position:absolute;top:-6px;right:-6px;background:var(--danger);color:#fff;
     width:16px;height:16px;border-radius:50%;font-size:10px;line-height:16px;text-align:center;padding:0;}
   .card:hover .remove-promo{display:block;}
@@ -182,6 +185,7 @@
     text-align:center;padding:0;}
   .card .remove-card{background:var(--danger);color:#fff;}
   .card .save-card{background:#2b2320;color:#fff;}
+  .card .toggle-badge{background:#ffd23f;color:#5a3d00;}
   .card .drag-handle{position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:#fff;
     border:1px solid #ddd;border-radius:8px;padding:0 8px;font-size:9px;color:#999;cursor:grab;
     letter-spacing:2px;line-height:15px;display:none;}
@@ -790,7 +794,7 @@ document.getElementById('btnApplyMapping').addEventListener('click', async ()=>{
       deposit: parseBool(get('deposit')),
       badge: badge,
       promoNote: get('promoNote'), promoCondition: get('promoNote') ? '2 KOLLI KAUFEN' : '',
-      promoStyle: 'combo', promoImage: null,
+      promoStyle: 'combo', promoColor: 'green', promoImage: null, badgeHidden: false,
       ref: get('ref'),
       imgFileNorm: normalize(basename(get('imgFile')).replace(/\.[^.]+$/,'')),
       imgRelNorm: normalize(stripDriveLetter(get('imgFile')).replace(/\\/g,'/').replace(/\.[^.]+$/,'')),
@@ -1168,7 +1172,7 @@ document.getElementById('btnApplyLayout').addEventListener('click', ()=>{
 document.getElementById('btnAddCard').addEventListener('click', ()=>{
   state.products.push({
     id:'p'+(uid++), name:'Neues Produkt', pack:'', unit:'', oldPrice:null, newPrice:null,
-    deposit:false, badge:'', promoNote:'', promoCondition:'', promoStyle:'combo', promoImage:null,
+    deposit:false, badge:'', badgeHidden:false, promoNote:'', promoCondition:'', promoStyle:'combo', promoColor:'green', promoImage:null,
     ref:'', imgFileNorm:'', imgRelNorm:'', imgData:null, imgSource:'none', transparent:false,
     bundleQty:null, perUnit:false, cardW:null, cardH:null, imgH:null
   });
@@ -1470,6 +1474,11 @@ function renderCard(p){
   const bundleActive = !!(p.perUnit && p.bundleQty>1);
   const hasPromo = !!p.promoNote;
   const promoStyle = p.promoStyle === 'bubble' ? 'bubble' : 'combo';
+  const promoColor = p.promoColor === 'yellow' ? 'yellow' : 'green';
+  const promoTheme = promoColor === 'yellow'
+    ? { bg:'#f4c430', soft:'#fff9df', text:'#382b00', ink:'#795b00' }
+    : { bg:'#16945b', soft:'#effaf4', text:'#ffffff', ink:'#117849' };
+  const promoVars = `--promo-bg:${promoTheme.bg};--promo-soft:${promoTheme.soft};--promo-accent-text:${promoTheme.text};--promo-accent-ink:${promoTheme.ink};--promo-free-bg:${promoTheme.bg};--promo-free-text:${promoTheme.text}`;
   const promoCondition = p.promoCondition || '2 KOLLI KAUFEN';
   const promoImage = p.promoImage ? `<img src="${p.promoImage}" alt="Gratis-Artikel">` : '🎁';
 
@@ -1489,11 +1498,11 @@ function renderCard(p){
 
   card.innerHTML = `
     <div class="drag-handle" title="Ziehen zum Sortieren">⠿⠿⠿</div>
-    ${p.badge ? `<div class="badge" contenteditable="true" spellcheck="false">${escapeHtml(p.badge)}</div>` : ''}
+    ${p.badge && !p.badgeHidden ? `<div class="badge" contenteditable="true" spellcheck="false">${escapeHtml(p.badge)}</div>` : ''}
     ${p.deposit ? `<div class="deposit" title="Pfandartikel">🧴</div>` : ''}
     <div class="img-wrap" style="height:${imgH}px">
       ${p.imgData ? `<img class="product-photo" src="${p.imgData}">` : `<div class="placeholder">Produktbild<br>klicken zum Auswählen</div>`}
-      ${hasPromo && promoStyle==='bubble' ? `<div class="promo-bubble" style="--promo-bg:${state.header.bg1||'#f7941e'}" title="Bild des Gratis-Artikels wählen">
+      ${hasPromo && promoStyle==='bubble' ? `<div class="promo-bubble" style="${promoVars}" title="Bild des Gratis-Artikels wählen">
         <div class="promo-bubble-img">${promoImage}</div><span class="promo-bubble-label">1× GRATIS</span>
       </div>` : ''}
       <div class="img-resize" title="Bildgröße ziehen"></div>
@@ -1511,12 +1520,18 @@ function renderCard(p){
     ${p.bundleQty>1 ? `<button class="unit-toggle" data-toggle="${p.id}">${toggleLabel}</button>` : ''}
     ${hasPromo ? `<div class="promo-style-controls">
       <span>Geschenk-Design</span>
-      <select class="promo-style-select" aria-label="Geschenk-Design auswählen">
-        <option value="combo" ${promoStyle==='combo'?'selected':''}>Kombi-Box</option>
-        <option value="bubble" ${promoStyle==='bubble'?'selected':''}>Gratis-Bubble</option>
-      </select>
+      <div class="promo-selects">
+        <select class="promo-style-select" aria-label="Geschenk-Design auswählen">
+          <option value="combo" ${promoStyle==='combo'?'selected':''}>Kombi-Box</option>
+          <option value="bubble" ${promoStyle==='bubble'?'selected':''}>Gratis-Bubble</option>
+        </select>
+        <select class="promo-color-select" aria-label="Farbe der Geschenk-Aktion auswählen">
+          <option value="green" ${promoColor==='green'?'selected':''}>Grün</option>
+          <option value="yellow" ${promoColor==='yellow'?'selected':''}>Gelb</option>
+        </select>
+      </div>
     </div>
-    ${promoStyle==='combo' ? `<div class="promo-note-row promo-combo" style="--promo-bg:${state.header.bg1||'#f7941e'}">
+    ${promoStyle==='combo' ? `<div class="promo-note-row promo-combo" style="${promoVars}">
       <div class="promo-combo-main">
         <div class="promo-condition" contenteditable="true" spellcheck="false">${escapeHtml(promoCondition)}</div>
         <div class="promo-plus">+</div>
@@ -1525,13 +1540,14 @@ function renderCard(p){
       </div>
       <div class="promo-note" contenteditable="true" spellcheck="false">${escapeHtml(p.promoNote)}</div>
       <button class="remove-promo" title="Geschenk-Aktion entfernen">×</button>
-    </div>` : `<div class="promo-note-row promo-bubble-strip" style="--promo-bg:${state.header.bg1||'#f7941e'}">
+    </div>` : `<div class="promo-note-row promo-bubble-strip" style="${promoVars}">
       <div class="promo-condition" contenteditable="true" spellcheck="false">${escapeHtml(promoCondition)}</div>
       <div class="promo-note" contenteditable="true" spellcheck="false">${escapeHtml(p.promoNote)}</div>
       <button class="remove-promo" title="Geschenk-Aktion entfernen">×</button>
     </div>`}` : `<button class="add-promo" title="Geschenk-Aktion hinzufügen (z. B. 2 Kolli kaufen + Servietten gratis)">+ Geschenk-Aktion</button>`}
     <div class="resize-handle" title="Kartengröße ziehen"></div>
     <div class="card-controls">
+      <button class="toggle-badge" title="Rabatt-Badge ein- oder ausblenden">%</button>
       <button class="save-card" title="Diese Karte als Bild speichern">💾</button>
       <button class="remove-card" title="Karte löschen">×</button>
     </div>
@@ -1548,6 +1564,16 @@ function renderCard(p){
     renderPages();
     renderUnmatchedList();
   });
+  card.querySelector('.toggle-badge').addEventListener('click', ()=>{
+    syncDomToState();
+    if(!p.badge){
+      p.badge = '-10%';
+      p.badgeHidden = false;
+    }else{
+      p.badgeHidden = !p.badgeHidden;
+    }
+    renderPages(true);
+  });
   const toggleBtn = card.querySelector('.unit-toggle');
   if(toggleBtn){
     toggleBtn.addEventListener('click', ()=>{
@@ -1562,6 +1588,7 @@ function renderCard(p){
       p.promoCondition = '2 KOLLI KAUFEN';
       p.promoNote = '1 PACKUNG SERVIETTEN GRATIS';
       p.promoStyle = 'combo';
+      p.promoColor = 'green';
       renderPages(true);
     });
   }
@@ -1570,6 +1597,14 @@ function renderCard(p){
     promoStyleSelect.addEventListener('change', ()=>{
       syncDomToState();
       p.promoStyle = promoStyleSelect.value;
+      renderPages(true);
+    });
+  }
+  const promoColorSelect = card.querySelector('.promo-color-select');
+  if(promoColorSelect){
+    promoColorSelect.addEventListener('change', ()=>{
+      syncDomToState();
+      p.promoColor = promoColorSelect.value;
       renderPages(true);
     });
   }
