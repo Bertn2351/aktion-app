@@ -224,10 +224,13 @@
   .catalog-group-title{position:absolute;left:34px;top:-17px;max-width:72%;background:#fff;padding:0 12px;
     font-size:18px;font-weight:900;line-height:30px;color:#111;outline:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .catalog-items{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch;}
+  .catalog-single-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:26px 24px;align-items:stretch;}
   .layout-catalog .catalog-item{min-width:0;min-height:116px;border:0;border-radius:0;padding:8px 12px;background:transparent;
     display:grid;grid-template-columns:43% 57%;grid-template-rows:1fr;gap:7px;box-shadow:none;}
   .layout-catalog .catalog-item:not(:nth-child(3n)){border-right:1px solid #e7ae54;}
   .layout-catalog .catalog-item:nth-child(n+4){border-top:1px solid #f1d6a9;}
+  .layout-catalog .catalog-single-row .catalog-item{min-height:126px;border:2px solid #e5a23a;border-radius:13px;padding:10px 12px;background:#fff;}
+  .layout-catalog .catalog-single-row .catalog-item:nth-child(n+4){border-top:2px solid #e5a23a;}
   .layout-catalog .catalog-item .img-wrap{height:91px !important;margin:0;background:transparent;border-radius:0;overflow:visible;}
   .layout-catalog .catalog-item .img-wrap .product-photo{max-width:100%;max-height:91px;filter:drop-shadow(0 4px 5px rgba(0,0,0,.13));}
   .layout-catalog .catalog-copy{min-width:0;display:flex;flex-direction:column;justify-content:center;}
@@ -543,7 +546,7 @@
       <label>Spalten pro Seite</label>
       <select id="colsInput"><option value="1">1</option><option value="2" selected>2</option><option value="3">3</option></select>
       <label>Karten pro Seite</label>
-      <input type="number" id="perPageInput" value="6" min="1" max="12">
+      <input type="number" id="perPageInput" value="6" min="1" max="18">
       <label>Kartengröße (%)</label>
       <input type="number" id="cardSizeInput" value="100" min="50" max="150">
       <label>Produktbild-Höhe (%)</label>
@@ -845,7 +848,7 @@ document.getElementById('btnApplyMapping').addEventListener('click', async ()=>{
     return {
       id: 'p'+(uid++),
       name: nameText,
-      category: get('category') || 'Angebote',
+      category: get('category'),
       pack: packText,
       unit: get('unit'),
       oldPrice: oldP, newPrice: newP,
@@ -1221,9 +1224,9 @@ document.getElementById('layoutModeInput').addEventListener('change', (e)=>{
   state.layout.mode = e.target.value;
   if(e.target.value === 'catalog'){
     document.getElementById('colsInput').value = '3';
-    document.getElementById('perPageInput').value = '12';
+    document.getElementById('perPageInput').value = '13';
     state.layout.cols = 3;
-    state.layout.perPage = 12;
+    state.layout.perPage = 13;
     if(state.header.title === 'Aktion'){
       state.header.title = 'Verpackung';
       document.getElementById('titleInput').value = state.header.title;
@@ -1252,7 +1255,7 @@ document.getElementById('btnApplyLayout').addEventListener('click', ()=>{
 
 document.getElementById('btnAddCard').addEventListener('click', ()=>{
   state.products.push({
-    id:'p'+(uid++), name:'Neues Produkt', category:'Angebote', pack:'', unit:'', oldPrice:null, newPrice:null,
+    id:'p'+(uid++), name:'Neues Produkt', category:'', pack:'', unit:'', oldPrice:null, newPrice:null,
     deposit:false, badge:'', badgeHidden:false, promoNote:'', promoCondition:'', promoStyle:'combo', promoColor:'green', promoImage:null,
     ref:'', imgFileNorm:'', imgRelNorm:'', imgData:null, imgSource:'none', transparent:false,
     bundleQty:null, perUnit:false, cardW:null, cardH:null, imgH:null
@@ -1529,16 +1532,47 @@ function renderCatalogItem(p){
   return item;
 }
 
+function inferCatalogCategory(p){
+  const explicit = (p.category||'').trim();
+  if(explicit && normalize(explicit) !== 'angebote') return explicit;
+  const text = normalize((p.name||'') + ' ' + (p.pack||''));
+  if(text.includes('salatschale')) return 'Salatschalen';
+  if(text.includes('suppenschale')) return 'Suppenschalen';
+  if(text.includes('saucenbecher') || text.includes('sossenbecher')) return 'Saucenbecher';
+  if(text.includes('serviette')) return 'Servietten';
+  if((text.includes('doner') || text.includes('kebab')) && (text.includes('tute') || text.includes('papier'))) return 'Döner Tüten';
+  if(text.includes('mullsack') || text.includes('mullsacke') || text.includes('abfallsack') || text.includes('mullbeutel')) return 'Müllsäcke';
+  if(text.includes('schale')) return 'Schalen';
+  if(text.includes('becher')) return 'Becher';
+  if(text.includes('tute') || text.includes('beutel')) return 'Tüten & Beutel';
+  if(text.includes('folie')) return 'Folien';
+  return 'Weitere Angebote';
+}
+
 function buildCatalogGroupsEl(products){
   const root = document.createElement('div');
   root.className = 'catalog-groups';
   const groups = new Map();
   products.forEach(p=>{
-    const key = (p.category||'Angebote').trim() || 'Angebote';
+    const key = inferCatalogCategory(p);
     if(!groups.has(key)) groups.set(key, []);
     groups.get(key).push(p);
   });
+  let singles = null;
+  const flushSingles = ()=>{ singles = null; };
   groups.forEach((items, category)=>{
+    if(items.length === 1){
+      if(!singles){
+        singles = document.createElement('div');
+        singles.className = 'catalog-single-row';
+        root.appendChild(singles);
+      }
+      const singleItem = renderCatalogItem(items[0]);
+      singleItem.classList.add('catalog-single-card');
+      singles.appendChild(singleItem);
+      return;
+    }
+    flushSingles();
     const group = document.createElement('section');
     group.className = 'catalog-group';
     const heading = document.createElement('div');
@@ -1546,7 +1580,7 @@ function buildCatalogGroupsEl(products){
     heading.contentEditable = 'true';
     heading.spellcheck = false;
     heading.textContent = category;
-    heading.addEventListener('input', ()=> items.forEach(p=>{ p.category = heading.textContent.trim() || 'Angebote'; }));
+    heading.addEventListener('input', ()=> items.forEach(p=>{ p.category = heading.textContent.trim(); }));
     const grid = document.createElement('div');
     grid.className = 'catalog-items';
     items.forEach(p=> grid.appendChild(renderCatalogItem(p)));
