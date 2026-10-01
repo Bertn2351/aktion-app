@@ -835,8 +835,26 @@ document.getElementById('btnApplyMapping').addEventListener('click', async ()=>{
 
   const newProducts = rawRows.rows.filter(r=>r.some(c=>c && c.trim())).map(r=>{
     const get = (k)=> (map[k]>=0 && r[map[k]]!==undefined) ? r[map[k]].trim() : '';
-    const oldP = parseNum(get('oldPrice'));
-    const newP = parseNum(get('newPrice'));
+    const getByHeader = (...names)=>{
+      for(const name of names){
+        const idx = rawRows.headers.findIndex(h=>normalize(h)===normalize(name));
+        if(idx>=0 && r[idx]!==undefined) return String(r[idx]).trim();
+      }
+      return '';
+    };
+    const vk1 = parseNum(getByHeader('VK_Preis_1','VK Preis 1'));
+    const vk5 = parseNum(getByHeader('VK_Preis_5','VK Preis 5'));
+    const action1 = parseNum(getByHeader('Aktionspreis_1','Aktionspreis 1'));
+    const action5 = parseNum(getByHeader('Aktionspreis_5','Aktionspreis 5'));
+    let oldP = parseNum(get('oldPrice'));
+    let newP = parseNum(get('newPrice'));
+    if(action5!==null){
+      newP = action5;
+      oldP = vk5!==null ? vk5 : (vk1!==null ? vk1 : oldP);
+    }else if(action1!==null){
+      newP = action1;
+      oldP = vk1!==null ? vk1 : (vk5!==null ? vk5 : oldP);
+    }
     let badge = get('badge');
     if(!badge && oldP!==null && newP!==null && oldP>newP){
       const pct = Math.round((oldP-newP)/oldP*100);
@@ -857,8 +875,8 @@ document.getElementById('btnApplyMapping').addEventListener('click', async ()=>{
       promoNote: get('promoNote'), promoCondition: get('promoNote') ? '2 KOLLI KAUFEN' : '',
       promoStyle: 'combo', promoColor: 'green', promoImage: null, badgeHidden: false,
       ref: get('ref'),
-      imgFileNorm: normalize(basename(get('imgFile')).replace(/\.[^.]+$/,'')),
-      imgRelNorm: normalize(stripDriveLetter(get('imgFile')).replace(/\\/g,'/').replace(/\.[^.]+$/,'')),
+      imgFileNorm: normalize(basename(get('imgFile')).replace(/\.(png|jpe?g|webp|gif|bmp)$/i,'')),
+      imgRelNorm: normalize(stripDriveLetter(get('imgFile')).replace(/\\/g,'/').replace(/\.(png|jpe?g|webp|gif|bmp)$/i,'')),
       imgData: null, imgSource: 'none', transparent:false,
       bundleQty: bundle.bundleQty, perUnit: bundle.perUnit,
       cardW: null, cardH: null, imgH: null
@@ -1534,19 +1552,7 @@ function renderCatalogItem(p){
 
 function inferCatalogCategory(p){
   const explicit = (p.category||'').trim();
-  if(explicit && normalize(explicit) !== 'angebote') return explicit;
-  const text = normalize((p.name||'') + ' ' + (p.pack||''));
-  if(text.includes('salatschale')) return 'Salatschalen';
-  if(text.includes('suppenschale')) return 'Suppenschalen';
-  if(text.includes('saucenbecher') || text.includes('sossenbecher')) return 'Saucenbecher';
-  if(text.includes('serviette')) return 'Servietten';
-  if((text.includes('doner') || text.includes('kebab')) && (text.includes('tute') || text.includes('papier'))) return 'Döner Tüten';
-  if(text.includes('mullsack') || text.includes('mullsacke') || text.includes('abfallsack') || text.includes('mullbeutel')) return 'Müllsäcke';
-  if(text.includes('schale')) return 'Schalen';
-  if(text.includes('becher')) return 'Becher';
-  if(text.includes('tute') || text.includes('beutel')) return 'Tüten & Beutel';
-  if(text.includes('folie')) return 'Folien';
-  return 'Weitere Angebote';
+  return explicit || 'Weitere Angebote';
 }
 
 function buildCatalogGroupsEl(products){
