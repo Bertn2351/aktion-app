@@ -129,6 +129,9 @@
   .card:hover .unit-toggle{display:inline-block;}
   .card .resize-handle{position:absolute;bottom:2px;right:2px;width:12px;height:12px;cursor:nwse-resize;
     border-right:3px solid #ccc;border-bottom:3px solid #ccc;}
+  .card .price-new-col{position:relative;padding-right:10px;}
+  .card .price-resize{position:absolute;bottom:-6px;right:-6px;width:11px;height:11px;cursor:ns-resize;
+    border-right:2px solid #d8ab6a;border-bottom:2px solid #d8ab6a;}
   .card .card-controls{position:absolute;top:-8px;right:-8px;display:none;gap:4px;}
   .card:hover .card-controls{display:flex;}
   .card .card-controls button{width:20px;height:20px;border-radius:50%;font-size:11px;line-height:20px;
@@ -156,7 +159,7 @@
 
   .exporting .resize-handle, .exporting .img-resize, .exporting .remove-card,
   .exporting .card-controls, .exporting .drag-handle, .exporting .unit-toggle,
-  .exporting .remove-bg{display:none !important;}
+  .exporting .remove-bg, .exporting .price-resize{display:none !important;}
   .sub-price-line{font-size:9px;color:#aaa;text-align:right;margin-top:1px;}
 
   #printRoot{display:none;}
@@ -427,7 +430,11 @@
       <label>Produktbild-Höhe (%)</label>
       <input type="number" id="imgSizeInput" value="100" min="40" max="200">
       <button class="block secondary" id="btnApplyLayout">Auf alle Karten anwenden</button>
-      <div class="hint">Einzelne Karten lassen sich zusätzlich direkt am Eck-Griff in der Vorschau ziehen.</div>
+      <label style="display:flex;align-items:center;gap:8px;margin-top:12px;">
+        <input type="checkbox" id="applyAllSizesInput" style="width:auto;">
+        <span>Größenänderungen (Karte/Bild/Preis) per Ziehen auf alle Karten anwenden</span>
+      </label>
+      <div class="hint">Wenn aus: Ziehen an Karte, Bild oder Preis verändert nur diese eine Karte. Wenn an: wirkt sich sofort auf alle Karten aus.</div>
     </div>
 
     <div class="section">
@@ -437,7 +444,7 @@
       <img id="logo2Preview" src="assets/logo2-default.png">
       <input type="file" id="logo2Input" accept="image/*" style="display:none;">
       <label>Firmentext (Adresse, Tel, E-Mail, Web)</label>
-      <input type="text" id="footTextInput" value="G.A.B GmbH · IZ NÖ-Süd Straße 14, 37B Obj. 37B A-2351 Wiener Neudorf ÖSTERREICH · Tel. +43 2236 50 60 65 · office@global-produktion.com · www.gab.karga.uk">
+      <input type="text" id="footTextInput" value="G.A.B GmbH · IZ NÖ-Süd Straße 14, 37B Obj. 37B A-2351 Wiener Neudorf ÖSTERREICH · Tel. +43 2236 50 60 65 · office@global-produktion.com">
       <label>Kleingedrucktes</label>
       <input type="text" id="legalInput" value="Druckfehler vorbehalten. Alle Preise netto exkl. MwSt. Solange der Vorrat reicht.">
       <label>Hintergrundfarbe</label>
@@ -458,9 +465,16 @@
 
     <div class="section">
       <h2 data-step="7">Vorlage</h2>
+      <label>Design (Farben, Layout, Logos, Hintergründe) – ohne Produkte</label>
       <div class="row">
-        <button class="secondary" id="btnSaveTemplate">Speichern</button>
-        <button class="secondary" id="btnLoadTemplate">Laden</button>
+        <button id="btnSaveDesignCloud">☁️ In der Cloud speichern</button>
+        <button class="secondary" id="btnLoadDesignCloud">☁️ Aus Cloud laden</button>
+      </div>
+      <div class="hint">Einmal gespeichert, von jedem Gerät nach dem Login abrufbar – perfekt als Standard-Layout für künftige Aktionen.</div>
+      <label style="margin-top:14px;">Komplette Aktion als Datei (inkl. Produkte)</label>
+      <div class="row">
+        <button class="secondary" id="btnSaveTemplate">Datei speichern</button>
+        <button class="secondary" id="btnLoadTemplate">Datei laden</button>
       </div>
       <input type="file" id="templateInput" accept="application/json" style="display:none;">
       <button class="block secondary" id="btnAddCard">+ Leere Karte hinzufügen</button>
@@ -495,7 +509,7 @@ const state = {
   brand: { logo1: 'assets/logo1-default.svg', logo2: 'assets/logo2-default.png', bg: null, pageBg: null, accent: '#f7941e' },
   header: { kicker: 'ABHOLUNG UND LIEFERUNG', title: 'Aktion', validity: '–', titleFont: '',
             bg1: '#f7941e', bg2: '#e8720c', radius: 0, margin: 0, padY: 18 },
-  footer: { text: 'G.A.B GmbH · IZ NÖ-Süd Straße 14, 37B Obj. 37B A-2351 Wiener Neudorf ÖSTERREICH · Tel. +43 2236 50 60 65 · office@global-produktion.com · www.gab.karga.uk',
+  footer: { text: 'G.A.B GmbH · IZ NÖ-Süd Straße 14, 37B Obj. 37B A-2351 Wiener Neudorf ÖSTERREICH · Tel. +43 2236 50 60 65 · office@global-produktion.com',
             legal: 'Druckfehler vorbehalten. Alle Preise netto exkl. MwSt. Solange der Vorrat reicht.',
             bg: '#2b2320', radius: 0, margin: 0, padY: 10 },
   layout: { cols: 2, perPage: 6, cardSize: 100, imgSize: 100 },
@@ -505,6 +519,7 @@ let rawRows = null; // parsed paste rows before mapping confirmed
 let folderFileIndex = []; // [{norm, file}]
 let uid = 1;
 let dragSrcId = null;
+let applyToAllSizes = false;
 
 /* ============================= HELPERS ============================= */
 function normalize(s){
@@ -580,6 +595,19 @@ async function loadImageIndexFromCloud(){
   });
   setStatus(folderFileIndex.length + ' Bilder aus der Cloud geladen.');
   if(state.products.length){ await autoMatchImages(); renderPages(); }
+}
+const UNIT_FULLNAMES = {
+  'sa':'Sack','sack':'Sack','stk':'Stück','stk.':'Stück','stck':'Stück','stück':'Stück',
+  'krt':'Karton','krt.':'Karton','kart':'Karton','karton':'Karton',
+  'pkg':'Packung','pkg.':'Packung','pckg':'Packung','packung':'Packung',
+  'kg':'kg','g':'g','l':'Liter','ltr':'Liter',
+  'kolli':'Kolli','palette':'Palette','pal':'Palette','flasche':'Flasche','fl':'Flasche',
+  'dose':'Dose','eimer':'Eimer','kanister':'Kanister'
+};
+function expandUnit(u){
+  if(!u) return '';
+  const key = u.trim().toLowerCase();
+  return UNIT_FULLNAMES[key] || u.trim();
 }
 function detectBundle(packText, nameText){
   const text = (packText||'') + ' ' + (nameText||'');
@@ -880,8 +908,9 @@ document.getElementById('singleImageInput').addEventListener('change', async (e)
 /* ============================= HEADER / FOOTER / BRAND BINDINGS ============================= */
 function bindText(id, path){
   document.getElementById(id).addEventListener('input', (e)=>{
+    syncDomToState();
     setPath(state, path, e.target.value);
-    renderPages();
+    renderPages(true);
   });
 }
 function setPath(obj, path, val){
@@ -910,25 +939,46 @@ document.getElementById('accentInput').addEventListener('input', e=>{
   document.documentElement.style.setProperty('--orange', e.target.value);
 });
 
-function setupImageSwap(dropId, inputId, previewId, statePath, callback){
+async function uploadBrandingAsset(file, key){
+  try{
+    const ext = (file.name.split('.').pop() || 'png').toLowerCase().replace(/[^a-z0-9]/g,'') || 'png';
+    const path = `_branding/${key}.${ext}`;
+    const { error } = await sb.storage.from(BUCKET).upload(path, file, {upsert:true, contentType: file.type || 'image/png'});
+    if(error){ console.error('Branding-Upload-Fehler', error); return null; }
+    const { data } = sb.storage.from(BUCKET).getPublicUrl(path);
+    return data.publicUrl + '?v=' + Date.now();
+  }catch(err){ console.error(err); return null; }
+}
+
+function setupImageSwap(dropId, inputId, previewId, statePath, cloudKey){
   const drop = document.getElementById(dropId);
   const input = document.getElementById(inputId);
   drop.addEventListener('click', ()=> input.click());
   input.addEventListener('change', async ()=>{
     const file = input.files[0];
     if(!file) return;
-    const url = await fileToDataUrl(file);
-    setPath(state, statePath, url);
+    const localUrl = await fileToDataUrl(file);
     const prev = document.getElementById(previewId);
-    if(prev){ prev.src = url; prev.style.display='block'; }
-    if(callback) callback(url);
+    if(prev){ prev.src = localUrl; prev.style.display='block'; }
+    setPath(state, statePath, localUrl);
     renderPages();
+    if(cloudKey){
+      setStatus('Lade Bild in die Cloud hoch…');
+      const cloudUrl = await uploadBrandingAsset(file, cloudKey);
+      if(cloudUrl){
+        setPath(state, statePath, cloudUrl);
+        renderPages();
+        setStatus('Gespeichert – von jedem Gerät abrufbar.');
+      } else {
+        setStatus('Hochladen fehlgeschlagen, nutze Bild nur lokal.');
+      }
+    }
   });
 }
-setupImageSwap('logo1Drop','logo1Input','logoPreview','brand.logo1');
-setupImageSwap('logo2Drop','logo2Input','logo2Preview','brand.logo2');
-setupImageSwap('bgDrop','bgInput','bgPreview','brand.bg');
-setupImageSwap('pageBgDrop','pageBgInput','pageBgPreview','brand.pageBg');
+setupImageSwap('logo1Drop','logo1Input','logoPreview','brand.logo1','logo1');
+setupImageSwap('logo2Drop','logo2Input','logo2Preview','brand.logo2','logo2');
+setupImageSwap('bgDrop','bgInput','bgPreview','brand.bg','header-bg');
+setupImageSwap('pageBgDrop','pageBgInput','pageBgPreview','brand.pageBg','page-bg');
 
 document.getElementById('btnClearBg').addEventListener('click', ()=>{
   state.brand.bg = null;
@@ -942,12 +992,14 @@ document.getElementById('btnClearPageBg').addEventListener('click', ()=>{
 });
 
 /* ============================= LAYOUT ============================= */
+document.getElementById('applyAllSizesInput').addEventListener('change', (e)=>{ applyToAllSizes = e.target.checked; });
+
 document.getElementById('btnApplyLayout').addEventListener('click', ()=>{
   state.layout.cols = parseInt(document.getElementById('colsInput').value,10);
   state.layout.perPage = parseInt(document.getElementById('perPageInput').value,10);
   state.layout.cardSize = parseInt(document.getElementById('cardSizeInput').value,10);
   state.layout.imgSize = parseInt(document.getElementById('imgSizeInput').value,10);
-  state.products.forEach(p=>{ p.cardW=null; p.cardH=null; p.imgH=null; }); // reset per-card overrides
+  state.products.forEach(p=>{ p.cardW=null; p.cardH=null; p.imgH=null; p.priceScale=null; }); // reset per-card overrides
   renderPages();
 });
 
@@ -962,6 +1014,30 @@ document.getElementById('btnAddCard').addEventListener('click', ()=>{
 });
 
 /* ============================= TEMPLATE SAVE/LOAD ============================= */
+function applyLoadedDesignToInputs(){
+  document.getElementById('kickerInput').value = state.header.kicker;
+  document.getElementById('titleInput').value = state.header.title;
+  document.getElementById('titleFontInput').value = state.header.titleFont || '';
+  document.getElementById('validityInput').value = state.header.validity;
+  document.getElementById('headerBg1Input').value = state.header.bg1 || '#f7941e';
+  document.getElementById('headerBg2Input').value = state.header.bg2 || '#e8720c';
+  document.getElementById('headerRadiusInput').value = state.header.radius || 0;
+  document.getElementById('headerMarginInput').value = state.header.margin || 0;
+  document.getElementById('headerPadInput').value = state.header.padY || 18;
+  document.getElementById('footTextInput').value = state.footer.text;
+  document.getElementById('legalInput').value = state.footer.legal;
+  document.getElementById('footerBgInput').value = state.footer.bg || '#2b2320';
+  document.getElementById('footerRadiusInput').value = state.footer.radius || 0;
+  document.getElementById('footerMarginInput').value = state.footer.margin || 0;
+  document.getElementById('footerPadInput').value = state.footer.padY || 10;
+  document.getElementById('accentInput').value = state.brand.accent;
+  document.documentElement.style.setProperty('--orange', state.brand.accent);
+  if(state.brand.logo1) document.getElementById('logoPreview').src = state.brand.logo1;
+  if(state.brand.logo2) document.getElementById('logo2Preview').src = state.brand.logo2;
+  if(state.brand.bg){ document.getElementById('bgPreview').src=state.brand.bg; document.getElementById('bgPreview').style.display='block'; }
+  if(state.brand.pageBg){ document.getElementById('pageBgPreview').src=state.brand.pageBg; document.getElementById('pageBgPreview').style.display='block'; }
+}
+
 document.getElementById('btnSaveTemplate').addEventListener('click', ()=>{
   syncDomToState();
   const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
@@ -979,27 +1055,7 @@ document.getElementById('templateInput').addEventListener('change', (e)=>{
     try{
       const loaded = JSON.parse(r.result);
       Object.assign(state, loaded);
-      document.getElementById('kickerInput').value = state.header.kicker;
-      document.getElementById('titleInput').value = state.header.title;
-      document.getElementById('titleFontInput').value = state.header.titleFont || '';
-      document.getElementById('validityInput').value = state.header.validity;
-      document.getElementById('headerBg1Input').value = state.header.bg1 || '#f7941e';
-      document.getElementById('headerBg2Input').value = state.header.bg2 || '#e8720c';
-      document.getElementById('headerRadiusInput').value = state.header.radius || 0;
-      document.getElementById('headerMarginInput').value = state.header.margin || 0;
-      document.getElementById('headerPadInput').value = state.header.padY || 18;
-      document.getElementById('footTextInput').value = state.footer.text;
-      document.getElementById('legalInput').value = state.footer.legal;
-      document.getElementById('footerBgInput').value = state.footer.bg || '#2b2320';
-      document.getElementById('footerRadiusInput').value = state.footer.radius || 0;
-      document.getElementById('footerMarginInput').value = state.footer.margin || 0;
-      document.getElementById('footerPadInput').value = state.footer.padY || 10;
-      document.getElementById('accentInput').value = state.brand.accent;
-      document.documentElement.style.setProperty('--orange', state.brand.accent);
-      if(state.brand.logo1) document.getElementById('logoPreview').src = state.brand.logo1;
-      if(state.brand.logo2) document.getElementById('logo2Preview').src = state.brand.logo2;
-      if(state.brand.bg){ document.getElementById('bgPreview').src=state.brand.bg; document.getElementById('bgPreview').style.display='block'; }
-      if(state.brand.pageBg){ document.getElementById('pageBgPreview').src=state.brand.pageBg; document.getElementById('pageBgPreview').style.display='block'; }
+      applyLoadedDesignToInputs();
       renderPages();
       renderUnmatchedList();
       setStatus('Vorlage geladen: ' + (state.products||[]).length + ' Produkte.');
@@ -1007,6 +1063,38 @@ document.getElementById('templateInput').addEventListener('change', (e)=>{
   };
   r.readAsText(file);
   e.target.value='';
+});
+
+const DESIGN_TEMPLATE_PATH = '_templates/default-design.json';
+document.getElementById('btnSaveDesignCloud').addEventListener('click', async ()=>{
+  syncDomToState();
+  const design = { brand: state.brand, header: state.header, footer: state.footer, layout: state.layout };
+  const blob = new Blob([JSON.stringify(design,null,2)], {type:'application/json'});
+  setStatus('Speichere Design in der Cloud…');
+  const { error } = await sb.storage.from(BUCKET).upload(DESIGN_TEMPLATE_PATH, blob, {upsert:true, contentType:'application/json'});
+  setStatus(error ? ('Fehler beim Speichern: ' + error.message) : 'Design in der Cloud gespeichert – ab jetzt von überall abrufbar.');
+});
+document.getElementById('btnLoadDesignCloud').addEventListener('click', async ()=>{
+  setStatus('Lade Design aus der Cloud…');
+  try{
+    const { data, error } = await sb.storage.from(BUCKET).download(DESIGN_TEMPLATE_PATH);
+    if(error) throw error;
+    const text = await data.text();
+    const design = JSON.parse(text);
+    Object.assign(state.brand, design.brand);
+    Object.assign(state.header, design.header);
+    Object.assign(state.footer, design.footer);
+    Object.assign(state.layout, design.layout);
+    applyLoadedDesignToInputs();
+    document.getElementById('colsInput').value = state.layout.cols;
+    document.getElementById('perPageInput').value = state.layout.perPage;
+    document.getElementById('cardSizeInput').value = state.layout.cardSize;
+    document.getElementById('imgSizeInput').value = state.layout.imgSize;
+    renderPages();
+    setStatus('Design aus der Cloud geladen.');
+  }catch(err){
+    setStatus('Kein gespeichertes Design gefunden oder Fehler beim Laden.');
+  }
 });
 
 /* ============================= RENDER ============================= */
@@ -1074,8 +1162,8 @@ function buildFooterEl(){
   return footer;
 }
 
-function renderPages(){
-  syncDomToState();
+function renderPages(skipSync){
+  if(!skipSync) syncDomToState();
   const stage = document.getElementById('stage');
   stage.innerHTML = '';
   const perPage = Math.max(1, state.layout.perPage || 6);
@@ -1210,11 +1298,11 @@ function renderCard(p){
     priceNewBlock = `
       <div class="unit-price-display">${unitBig}</div>
       <div class="new-price" contenteditable="true" spellcheck="false">${euro(p.newPrice)}</div>
-      <span class="unit-note">je Stk.${p.unit ? ' · '+escapeHtml(p.unit)+' oben' : ''}</span>`;
+      <span class="unit-note">je Stk.${p.unit ? ' · je '+escapeHtml(expandUnit(p.unit))+' oben' : ''}</span>`;
   } else {
     priceNewBlock = `
       <div class="new-price" contenteditable="true" spellcheck="false">${p.newPrice!==null ? euro(p.newPrice) : ''}</div>
-      <span class="unit-note">${p.unit ? '/'+escapeHtml(p.unit) : ''}</span>`;
+      <span class="unit-note">${p.unit ? 'je '+escapeHtml(expandUnit(p.unit)) : ''}</span>`;
   }
   const toggleLabel = bundleActive ? 'Kolli-Preis groß anzeigen' : 'Je Stück groß anzeigen';
 
@@ -1234,7 +1322,7 @@ function renderCard(p){
         ${p.oldPrice!==null ? `<div class="old-price" contenteditable="true" spellcheck="false">${euro(p.oldPrice)}</div>` : `<div class="old-price" contenteditable="true" spellcheck="false" style="opacity:.3"></div>`}
         ${p.deposit ? `<span class="unit-note">zzgl. Pfand</span>` : ''}
       </div>
-      <div class="price-new-col">${priceNewBlock}</div>
+      <div class="price-new-col">${priceNewBlock}<div class="price-resize" title="Preisgröße ziehen"></div></div>
     </div>
     ${p.bundleQty>1 ? `<button class="unit-toggle" data-toggle="${p.id}">${toggleLabel}</button>` : ''}
     <div class="resize-handle" title="Kartengröße ziehen"></div>
@@ -1243,6 +1331,7 @@ function renderCard(p){
       <button class="remove-card" title="Karte löschen">×</button>
     </div>
   `;
+  if(p.priceScale && p.priceScale!==1) applyPriceScale(card, p.priceScale);
 
   card.querySelector('.img-wrap').addEventListener('click', (e)=>{
     if(e.target.classList.contains('img-resize') || e.target.classList.contains('remove-bg')) return;
@@ -1293,18 +1382,18 @@ function renderCard(p){
     wrap.style.alignItems = 'center';
     wrap.style.justifyContent = 'center';
     const bigCard = renderCard(p);
-    bigCard.style.width = '440px';
-    bigCard.style.padding = '22px';
+    bigCard.style.width = '650px';
+    bigCard.style.padding = '36px';
     const setFontSize = (sel, px)=>{ const el = bigCard.querySelector(sel); if(el) el.style.fontSize = px; };
-    setFontSize('.name', '19px');
-    setFontSize('.pack', '14px');
-    setFontSize('.old-price', '17px');
-    setFontSize('.new-price', '34px');
-    setFontSize('.unit-price-display', '34px');
-    setFontSize('.badge', '14px');
-    bigCard.querySelectorAll('.unit-note').forEach(el=> el.style.fontSize = '13px');
+    setFontSize('.name', '28px');
+    setFontSize('.pack', '19px');
+    setFontSize('.old-price', '24px');
+    setFontSize('.new-price', '52px');
+    setFontSize('.unit-price-display', '52px');
+    setFontSize('.badge', '20px');
+    bigCard.querySelectorAll('.unit-note').forEach(el=> el.style.fontSize = '18px');
     const bigImgWrap = bigCard.querySelector('.img-wrap');
-    if(bigImgWrap) bigImgWrap.style.height = '280px';
+    if(bigImgWrap) bigImgWrap.style.height = '420px';
     wrap.appendChild(bigCard);
     tempPage.appendChild(wrap);
     tempPage.appendChild(buildFooterEl());
@@ -1327,13 +1416,24 @@ function renderCard(p){
     p.cardH = Math.max(160, rect.height + dy);
     card.style.width = p.cardW+'px';
     card.style.minHeight = p.cardH+'px';
+    propagateSize({cardW:p.cardW, cardH:p.cardH});
   });
   makeDraggable(card.querySelector('.img-resize'), (dx,dy)=>{
     const imgWrap = card.querySelector('.img-wrap');
     const rect = imgWrap.getBoundingClientRect();
     p.imgH = Math.max(40, rect.height + dy);
     imgWrap.style.height = p.imgH+'px';
+    propagateSize({imgH:p.imgH});
   });
+  const priceResizeEl = card.querySelector('.price-resize');
+  if(priceResizeEl){
+    makeDraggable(priceResizeEl, (dx,dy)=>{
+      const delta = (dx + dy) / 150;
+      p.priceScale = Math.max(0.5, Math.min(3, (p.priceScale||1) + delta));
+      applyPriceScale(card, p.priceScale);
+      propagateSize({priceScale:p.priceScale});
+    });
+  }
 
   attachCardDnD(card, p);
 
@@ -1370,6 +1470,24 @@ function attachCardDnD(card, p){
   });
 }
 
+const PRICE_BASE = { newPrice:22, oldPrice:12, unitBig:22, unitNote:9 };
+function applyPriceScale(cardEl, scale){
+  const set = (sel, base)=>{ const el = cardEl.querySelector(sel); if(el) el.style.fontSize = Math.round(base*scale)+'px'; };
+  set('.new-price', PRICE_BASE.newPrice);
+  set('.old-price', PRICE_BASE.oldPrice);
+  set('.unit-price-display', PRICE_BASE.unitBig);
+  cardEl.querySelectorAll('.unit-note').forEach(el=> el.style.fontSize = Math.round(PRICE_BASE.unitNote*scale)+'px');
+}
+function propagateSize(fields){
+  if(!applyToAllSizes) return;
+  state.products.forEach(p=> Object.assign(p, fields));
+  document.querySelectorAll('.card').forEach(cardEl=>{
+    if('cardW' in fields) cardEl.style.width = fields.cardW+'px';
+    if('cardH' in fields) cardEl.style.minHeight = fields.cardH+'px';
+    if('imgH' in fields){ const iw = cardEl.querySelector('.img-wrap'); if(iw) iw.style.height = fields.imgH+'px'; }
+    if('priceScale' in fields) applyPriceScale(cardEl, fields.priceScale);
+  });
+}
 function makeDraggable(handle, onMove){
   handle.addEventListener('mousedown', (e)=>{
     e.preventDefault(); e.stopPropagation();
@@ -1411,7 +1529,7 @@ document.getElementById('btnPrint').addEventListener('click', async ()=>{
     clone.style.transform = 'none';
     clone.style.margin = '0';
     clone.style.boxShadow = 'none';
-    clone.querySelectorAll('.resize-handle, .img-resize, .remove-card, .card-controls, .drag-handle, .unit-toggle, .remove-bg').forEach(el=>el.remove());
+    clone.querySelectorAll('.resize-handle, .img-resize, .remove-card, .card-controls, .drag-handle, .unit-toggle, .remove-bg, .price-resize').forEach(el=>el.remove());
     clone.querySelectorAll('img.product-photo').forEach(el=>{
       if(el.src) imageUrls.add(el.src);
     });
