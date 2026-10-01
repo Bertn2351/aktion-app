@@ -1439,7 +1439,7 @@ function renderCard(p){
   } else {
     priceNewBlock = `
       <div class="new-price" contenteditable="true" spellcheck="false">${p.newPrice!==null ? euro(p.newPrice) : ''}</div>
-      <span class="unit-note">${p.unit ? 'je '+escapeHtml(expandUnit(p.unit)) : ''}</span>`;
+      <span class="unit-note">${(p.unit && p.newPrice!==null) ? 'je '+escapeHtml(expandUnit(p.unit)) : ''}</span>`;
   }
   const toggleLabel = bundleActive ? 'Kolli-Preis groß anzeigen' : 'Je Stück groß anzeigen';
 
@@ -1560,6 +1560,16 @@ function renderCard(p){
     bigCard.querySelectorAll('.unit-note').forEach(el=> el.style.fontSize = '18px');
     const bigImgWrap = bigCard.querySelector('.img-wrap');
     if(bigImgWrap) bigImgWrap.style.height = '420px';
+    const bigPromoRow = bigCard.querySelector('.promo-note-row');
+    if(bigPromoRow){
+      bigPromoRow.style.padding = '12px 16px';
+      bigPromoRow.style.gap = '14px';
+      bigPromoRow.style.borderRadius = '12px';
+      const bigPromoNote = bigPromoRow.querySelector('.promo-note');
+      if(bigPromoNote) bigPromoNote.style.fontSize = '20px';
+      const bigPromoImg = bigPromoRow.querySelector('.promo-img');
+      if(bigPromoImg){ bigPromoImg.style.width = '56px'; bigPromoImg.style.height = '56px'; bigPromoImg.style.fontSize = '26px'; bigPromoImg.style.borderRadius = '9px'; }
+    }
     wrap.appendChild(bigCard);
     tempPage.appendChild(wrap);
     tempPage.appendChild(buildFooterEl());
