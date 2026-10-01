@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,800;1,800&family=Oswald:wght@600;700&family=Bebas+Neue&family=Anton&family=Playfair+Display:ital,wght@0,800;1,800&family=Caveat:wght@700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.50.0/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
   :root{
     --orange:#f7941e; --orange-dark:#df6e08; --orange-soft:#fff3e4;
@@ -58,6 +59,14 @@
   .section input:hover,.section textarea:hover,.section select:hover{border-color:#bec4cc;background:#fff;}
   .section input:focus,.section textarea:focus,.section select:focus{border-color:var(--orange);background:#fff;box-shadow:0 0 0 3px rgba(247,148,30,.14);}
   .section textarea{min-height:92px;resize:vertical;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;line-height:1.5;}
+  .quick-form-box{padding:12px;margin-bottom:14px;border:1px solid #ffd5a3;border-radius:11px;background:linear-gradient(145deg,#fff9f1,#fff3e4);}
+  .quick-form-box .quick-title{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;font-size:12px;font-weight:800;color:#4b3520;}
+  .quick-form-box .quick-title span{font-size:9px;color:var(--orange-dark);background:#fff;padding:4px 7px;border-radius:999px;border:1px solid #ffe0ba;}
+  .quick-form-box select{background:#fff !important;}
+  .quick-form-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:7px;}
+  .quick-form-actions button{min-width:0;padding-left:7px;padding-right:7px;}
+  .data-file-button{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;margin-bottom:8px;background:#fff;color:var(--orange-dark);border:1.5px dashed #f2b363;box-shadow:none;}
+  .data-file-button:hover{background:#fff7ed;border-color:var(--orange);box-shadow:none;}
   .row{display:flex;gap:8px;}
   .row > *{flex:1;}
   button{cursor:pointer;border:1px solid transparent;border-radius:9px;padding:9px 12px;font-size:12px;font-weight:720;background:var(--orange);color:#fff;transition:transform .15s,box-shadow .15s,background .15s,border-color .15s;}
@@ -460,7 +469,22 @@
 
     <div class="section panel-section panel-active" id="panel-data">
       <h2 data-step="1">Daten einfügen</h2>
-      <label>Export aus Excel/CAO einfügen (mit Tab getrennt, erste Zeile = Spaltennamen)</label>
+      <div class="quick-form-box">
+        <div class="quick-title">Formular &amp; Layout <span>Schnell laden</span></div>
+        <select id="quickFormSelect" aria-label="Gespeichertes Formular auswählen">
+          <option value="">— Formular auswählen —</option>
+          <option value="_templates/default-design.json">Cloud-Standardlayout</option>
+        </select>
+        <div class="quick-form-actions">
+          <button type="button" id="btnQuickLoadForm">Layout laden</button>
+          <button type="button" class="secondary" id="btnQuickSaveForm">Formular speichern</button>
+        </div>
+        <div class="hint">Speichert Kopf, Farben, Layout und Fußzeile – ohne Produktdaten.</div>
+      </div>
+      <label>Export-Datei auswählen</label>
+      <button type="button" class="data-file-button" id="btnPickDataFile">📄 Excel-, CSV- oder TSV-Datei einfügen</button>
+      <input type="file" id="dataFileInput" accept=".xlsx,.xls,.csv,.tsv,.txt" style="display:none;">
+      <label>Oder Daten aus Excel/CAO einfügen (erste Zeile = Spaltennamen)</label>
       <textarea id="pasteArea" placeholder="Kategorie&#9;Artikelbezeichnung&#9;Gebinde&#9;VK-Preis 1&#9;Aktionspreis VK1&#9;Pfand&#9;Artikelnummer&#9;Mengeneinheit&#9;Produktbild"></textarea>
       <button class="block" id="btnParse">Daten übernehmen</button>
       <div id="mappingBox" style="display:none;margin-top:8px;">
@@ -813,6 +837,31 @@ function removeWhiteBackground(dataUrl, tolerance){
 function mappingKey(headers){ return 'aktionapp_map_' + headers.map(h=>normalize(h)).join(','); }
 
 /* ============================= PASTE / MAPPING ============================= */
+document.getElementById('btnPickDataFile').addEventListener('click', ()=> document.getElementById('dataFileInput').click());
+document.getElementById('dataFileInput').addEventListener('change', async (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  try{
+    let text = '';
+    if(window.XLSX){
+      const buffer = await file.arrayBuffer();
+      const workbook = XLSX.read(buffer, {type:'array', cellDates:true});
+      const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+      text = XLSX.utils.sheet_to_csv(firstSheet, {FS:'\t', RS:'\n', blankrows:false});
+    }else if(/\.(csv|tsv|txt)$/i.test(file.name)){
+      text = await file.text();
+    }else{
+      throw new Error('Excel-Modul konnte nicht geladen werden. Bitte Seite neu laden.');
+    }
+    document.getElementById('pasteArea').value = text.trim();
+    setStatus('Datei eingelesen: ' + file.name);
+    document.getElementById('btnParse').click();
+  }catch(err){
+    alert('Datei konnte nicht gelesen werden: ' + (err.message||err));
+  }
+  e.target.value = '';
+});
+
 document.getElementById('btnParse').addEventListener('click', ()=>{
   const raw = document.getElementById('pasteArea').value.trim();
   if(!raw){ alert('Bitte zuerst Daten einfügen.'); return; }
@@ -1383,35 +1432,96 @@ document.getElementById('templateInput').addEventListener('change', (e)=>{
 });
 
 const DESIGN_TEMPLATE_PATH = '_templates/default-design.json';
-document.getElementById('btnSaveDesignCloud').addEventListener('click', async ()=>{
+const FORM_TEMPLATES_FOLDER = '_templates/forms';
+
+function getCurrentDesign(){
   syncDomToState();
-  const design = { brand: state.brand, header: state.header, footer: state.footer, layout: state.layout };
+  return { brand: state.brand, header: state.header, footer: state.footer, layout: state.layout };
+}
+
+function safeFormFileName(name){
+  return name.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/ß/g,'ss')
+    .replace(/[^a-zA-Z0-9 _-]/g,'').trim().replace(/\s+/g,'_').slice(0,60) || ('Formular_' + Date.now());
+}
+
+async function refreshQuickFormOptions(selectPath){
+  const select = document.getElementById('quickFormSelect');
+  if(!select) return;
+  const previous = selectPath || select.value;
+  select.innerHTML = '<option value="">— Formular auswählen —</option>' +
+    `<option value="${DESIGN_TEMPLATE_PATH}">Cloud-Standardlayout</option>`;
+  try{
+    const { data, error } = await sb.storage.from(BUCKET).list(FORM_TEMPLATES_FOLDER, {
+      limit:100, sortBy:{column:'name',order:'asc'}
+    });
+    if(error) throw error;
+    (data||[]).filter(item=>item.name && item.name.endsWith('.json')).forEach(item=>{
+      const option = document.createElement('option');
+      option.value = FORM_TEMPLATES_FOLDER + '/' + item.name;
+      option.textContent = item.name.replace(/\.json$/i,'').replace(/_/g,' ');
+      select.appendChild(option);
+    });
+  }catch(err){
+    console.warn('Formularliste konnte nicht geladen werden:', err);
+  }
+  if([...select.options].some(option=>option.value===previous)) select.value = previous;
+}
+
+async function loadDesignFromPath(path, label){
+  if(!path){ alert('Bitte zuerst ein Formular auswählen.'); return false; }
+  setStatus('Lade Formular…');
+  try{
+    const { data, error } = await sb.storage.from(BUCKET).download(path);
+    if(error) throw error;
+    const payload = JSON.parse(await data.text());
+    const design = payload.design || payload;
+    if(design.brand) Object.assign(state.brand, design.brand);
+    if(design.header) Object.assign(state.header, design.header);
+    if(design.footer) Object.assign(state.footer, design.footer);
+    if(design.layout) Object.assign(state.layout, design.layout);
+    applyLoadedDesignToInputs();
+    renderPages();
+    setStatus('Formular geladen: ' + (label || payload.name || 'Layout'));
+    return true;
+  }catch(err){
+    setStatus('Formular konnte nicht geladen werden.');
+    alert('Formular konnte nicht geladen werden: ' + (err.message||err));
+    return false;
+  }
+}
+
+document.getElementById('btnQuickSaveForm').addEventListener('click', async ()=>{
+  const name = prompt('Wie soll dieses Formular heißen?', 'Mein Layout');
+  if(!name || !name.trim()) return;
+  const fileName = safeFormFileName(name.trim()) + '.json';
+  const path = FORM_TEMPLATES_FOLDER + '/' + fileName;
+  const payload = { name:name.trim(), savedAt:new Date().toISOString(), design:getCurrentDesign() };
+  const blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
+  setStatus('Speichere Formular…');
+  const { error } = await sb.storage.from(BUCKET).upload(path, blob, {upsert:true, contentType:'application/json'});
+  if(error){
+    setStatus('Formular konnte nicht gespeichert werden.');
+    alert('Speichern fehlgeschlagen: ' + error.message);
+    return;
+  }
+  await refreshQuickFormOptions(path);
+  setStatus('Formular gespeichert: ' + name.trim());
+});
+
+document.getElementById('btnQuickLoadForm').addEventListener('click', async ()=>{
+  const select = document.getElementById('quickFormSelect');
+  await loadDesignFromPath(select.value, select.options[select.selectedIndex]?.textContent);
+});
+
+document.getElementById('btnSaveDesignCloud').addEventListener('click', async ()=>{
+  const design = getCurrentDesign();
   const blob = new Blob([JSON.stringify(design,null,2)], {type:'application/json'});
   setStatus('Speichere Design in der Cloud…');
   const { error } = await sb.storage.from(BUCKET).upload(DESIGN_TEMPLATE_PATH, blob, {upsert:true, contentType:'application/json'});
   setStatus(error ? ('Fehler beim Speichern: ' + error.message) : 'Design in der Cloud gespeichert – ab jetzt von überall abrufbar.');
 });
 document.getElementById('btnLoadDesignCloud').addEventListener('click', async ()=>{
-  setStatus('Lade Design aus der Cloud…');
-  try{
-    const { data, error } = await sb.storage.from(BUCKET).download(DESIGN_TEMPLATE_PATH);
-    if(error) throw error;
-    const text = await data.text();
-    const design = JSON.parse(text);
-    Object.assign(state.brand, design.brand);
-    Object.assign(state.header, design.header);
-    Object.assign(state.footer, design.footer);
-    Object.assign(state.layout, design.layout);
-    applyLoadedDesignToInputs();
-    document.getElementById('colsInput').value = state.layout.cols;
-    document.getElementById('perPageInput').value = state.layout.perPage;
-    document.getElementById('cardSizeInput').value = state.layout.cardSize;
-    document.getElementById('imgSizeInput').value = state.layout.imgSize;
-    renderPages();
-    setStatus('Design aus der Cloud geladen.');
-  }catch(err){
-    setStatus('Kein gespeichertes Design gefunden oder Fehler beim Laden.');
-  }
+  await loadDesignFromPath(DESIGN_TEMPLATE_PATH, 'Cloud-Standardlayout');
 });
 
 /* ============================= RENDER ============================= */
@@ -2211,6 +2321,7 @@ function showApp(){
   document.getElementById('loginOverlay').style.display = 'none';
   document.getElementById('app').style.display = '';
   loadImageIndexFromCloud();
+  refreshQuickFormOptions();
 }
 document.getElementById('loginForm').addEventListener('submit', async (e)=>{
   e.preventDefault();
