@@ -68,8 +68,8 @@
   .unmatched-item button{padding:3px 7px;font-size:11px;}
   .match-status{font-size:10px;color:var(--success);background:#eaf7f0;padding:3px 6px;border-radius:999px;}
   .match-status.none{color:var(--danger);background:#fbeceb;}
-  #logoPreview, #logo2Preview, #bgPreview, #pageBgPreview{max-width:100%;max-height:50px;display:block;margin-top:4px;}
-  #bgPreview, #pageBgPreview{max-height:70px;}
+  #logoPreview, #logo2Preview, #bgPreview, #pageBgPreview, #footerBgPreview{max-width:100%;max-height:50px;display:block;margin-top:4px;}
+  #bgPreview, #pageBgPreview, #footerBgPreview{max-height:70px;}
 
   /* ---------- Preview / pages ---------- */
   #workspace{flex:1;display:flex;flex-direction:column;min-width:0;}
@@ -406,12 +406,14 @@
     <div class="section">
       <h2 data-step="4">Hintergrund &amp; Farben</h2>
       <label>Hintergrundbild Kopfzeile (optional)</label>
-      <div class="file-drop" id="bgDrop">Klicken zum Auswählen</div>
+      <select id="headerBgGallery"><option value="">— Kein Hintergrundbild —</option></select>
+      <div class="file-drop" id="bgDrop">Neues Bild hochladen</div>
       <img id="bgPreview" style="display:none;">
       <button class="secondary small" id="btnClearBg" style="margin-top:6px;">Kopfzeilen-Hintergrund entfernen</button>
       <input type="file" id="bgInput" accept="image/*" style="display:none;">
       <label>Hintergrundbild ganze Seite (optional)</label>
-      <div class="file-drop" id="pageBgDrop">Klicken zum Auswählen</div>
+      <select id="pageBgGallery"><option value="">— Kein Hintergrundbild —</option></select>
+      <div class="file-drop" id="pageBgDrop">Neues Bild hochladen</div>
       <img id="pageBgPreview" style="display:none;">
       <button class="secondary small" id="btnClearPageBg" style="margin-top:6px;">Seiten-Hintergrund entfernen</button>
       <input type="file" id="pageBgInput" accept="image/*" style="display:none;">
@@ -449,6 +451,12 @@
       <input type="text" id="legalInput" value="Druckfehler vorbehalten. Alle Preise netto exkl. MwSt. Solange der Vorrat reicht.">
       <label>Hintergrundfarbe</label>
       <input type="text" id="footerBgInput" value="#2b2320">
+      <label>Hintergrundbild Fußzeile (optional)</label>
+      <select id="footerBgGallery"><option value="">— Kein Hintergrundbild —</option></select>
+      <div class="file-drop" id="footerBgDrop">Neues Bild hochladen</div>
+      <img id="footerBgPreview" style="display:none;">
+      <button class="secondary small" id="btnClearFooterBg" style="margin-top:6px;">Fußzeilen-Hintergrundbild entfernen</button>
+      <input type="file" id="footerBgImgInput" accept="image/*" style="display:none;">
       <div class="row">
         <div>
           <label>Eckenrundung (px)</label>
@@ -511,7 +519,7 @@ const state = {
             bg1: '#f7941e', bg2: '#e8720c', radius: 0, margin: 0, padY: 18 },
   footer: { text: 'G.A.B GmbH · IZ NÖ-Süd Straße 14, 37B Obj. 37B A-2351 Wiener Neudorf ÖSTERREICH · Tel. +43 2236 50 60 65 · office@global-produktion.com',
             legal: 'Druckfehler vorbehalten. Alle Preise netto exkl. MwSt. Solange der Vorrat reicht.',
-            bg: '#2b2320', radius: 0, margin: 0, padY: 10 },
+            bg: '#2b2320', bgImage: null, radius: 0, margin: 0, padY: 10 },
   layout: { cols: 2, perPage: 6, cardSize: 100, imgSize: 100 },
   products: [] // {id,name,pack,unit,oldPrice,newPrice,deposit,badge,ref,imgFileNorm,imgData,imgSource,transparent,bundleQty,perUnit,cardW,cardH,imgH}
 };
@@ -950,6 +958,75 @@ async function uploadBrandingAsset(file, key){
   }catch(err){ console.error(err); return null; }
 }
 
+/* ---- Hintergrund-Galerie: mehrere gespeicherte Hintergründe pro Bereich, zur Auswahl ---- */
+async function uploadToBgGallery(file, folder){
+  try{
+    const ext = (file.name.split('.').pop() || 'png').toLowerCase().replace(/[^a-z0-9]/g,'') || 'png';
+    const safeName = file.name.replace(/\.[^.]+$/,'').normalize('NFD').replace(/[̀-ͯ]/g,'')
+      .replace(/[^a-zA-Z0-9 _-]/g,'_').trim().slice(0,40) || 'bild';
+    const path = `_branding/backgrounds/${folder}/${Date.now()}-${safeName}.${ext}`;
+    const { error } = await sb.storage.from(BUCKET).upload(path, file, {upsert:true, contentType: file.type || 'image/png'});
+    if(error){ console.error('Galerie-Upload-Fehler', error); return null; }
+    const { data } = sb.storage.from(BUCKET).getPublicUrl(path);
+    return { path, url: data.publicUrl, name: safeName };
+  }catch(err){ console.error(err); return null; }
+}
+async function listBgGallery(folder){
+  try{
+    const { data, error } = await sb.storage.from(BUCKET).list(`_branding/backgrounds/${folder}`, {limit:200, sortBy:{column:'created_at', order:'desc'}});
+    if(error || !data) return [];
+    return data.filter(f=>f.id!==null).map(f=>{
+      const path = `_branding/backgrounds/${folder}/${f.name}`;
+      const { data: pub } = sb.storage.from(BUCKET).getPublicUrl(path);
+      return { path, url: pub.publicUrl, name: f.name.replace(/^\d+-/,'').replace(/\.[^.]+$/,'') };
+    });
+  }catch(err){ console.error(err); return []; }
+}
+async function populateBgGallerySelect(selectId, folder, currentUrl){
+  const sel = document.getElementById(selectId);
+  const items = await listBgGallery(folder);
+  sel.innerHTML = '<option value="">— Kein Hintergrundbild —</option>' +
+    items.map(it=> `<option value="${it.url}">${escapeHtml(it.name)}</option>`).join('');
+  if(currentUrl){
+    const match = [...sel.options].find(o=> currentUrl.startsWith(o.value) && o.value);
+    if(match) sel.value = match.value;
+  }
+}
+function setupBgGallery(cfg){
+  const { selectId, dropId, inputId, previewId, folder, statePath } = cfg;
+  populateBgGallerySelect(selectId, folder, getPath(state, statePath));
+  document.getElementById(selectId).addEventListener('change', (e)=>{
+    const url = e.target.value || null;
+    setPath(state, statePath, url);
+    const prev = document.getElementById(previewId);
+    if(prev){ if(url){ prev.src=url; prev.style.display='block'; } else { prev.style.display='none'; } }
+    renderPages(true);
+  });
+  const drop = document.getElementById(dropId);
+  const input = document.getElementById(inputId);
+  drop.addEventListener('click', ()=> input.click());
+  input.addEventListener('change', async ()=>{
+    const file = input.files[0];
+    if(!file) return;
+    setStatus('Lade Hintergrundbild hoch…');
+    const result = await uploadToBgGallery(file, folder);
+    if(result){
+      setPath(state, statePath, result.url);
+      const prev = document.getElementById(previewId);
+      if(prev){ prev.src = result.url; prev.style.display='block'; }
+      await populateBgGallerySelect(selectId, folder, result.url);
+      renderPages(true);
+      setStatus('Hintergrundbild gespeichert – ab jetzt in der Galerie wählbar.');
+    } else {
+      setStatus('Hochladen fehlgeschlagen.');
+    }
+    input.value = '';
+  });
+}
+function getPath(obj, path){
+  return path.split('.').reduce((o,k)=> (o==null?undefined:o[k]), obj);
+}
+
 function setupImageSwap(dropId, inputId, previewId, statePath, cloudKey){
   const drop = document.getElementById(dropId);
   const input = document.getElementById(inputId);
@@ -977,18 +1054,28 @@ function setupImageSwap(dropId, inputId, previewId, statePath, cloudKey){
 }
 setupImageSwap('logo1Drop','logo1Input','logoPreview','brand.logo1','logo1');
 setupImageSwap('logo2Drop','logo2Input','logo2Preview','brand.logo2','logo2');
-setupImageSwap('bgDrop','bgInput','bgPreview','brand.bg','header-bg');
-setupImageSwap('pageBgDrop','pageBgInput','pageBgPreview','brand.pageBg','page-bg');
+
+setupBgGallery({ selectId:'headerBgGallery', dropId:'bgDrop', inputId:'bgInput', previewId:'bgPreview', folder:'header', statePath:'brand.bg' });
+setupBgGallery({ selectId:'pageBgGallery', dropId:'pageBgDrop', inputId:'pageBgInput', previewId:'pageBgPreview', folder:'page', statePath:'brand.pageBg' });
+setupBgGallery({ selectId:'footerBgGallery', dropId:'footerBgDrop', inputId:'footerBgImgInput', previewId:'footerBgPreview', folder:'footer', statePath:'footer.bgImage' });
 
 document.getElementById('btnClearBg').addEventListener('click', ()=>{
   state.brand.bg = null;
   document.getElementById('bgPreview').style.display='none';
-  renderPages();
+  document.getElementById('headerBgGallery').value = '';
+  renderPages(true);
 });
 document.getElementById('btnClearPageBg').addEventListener('click', ()=>{
   state.brand.pageBg = null;
   document.getElementById('pageBgPreview').style.display='none';
-  renderPages();
+  document.getElementById('pageBgGallery').value = '';
+  renderPages(true);
+});
+document.getElementById('btnClearFooterBg').addEventListener('click', ()=>{
+  state.footer.bgImage = null;
+  document.getElementById('footerBgPreview').style.display='none';
+  document.getElementById('footerBgGallery').value = '';
+  renderPages(true);
 });
 
 /* ============================= LAYOUT ============================= */
@@ -1036,6 +1123,10 @@ function applyLoadedDesignToInputs(){
   if(state.brand.logo2) document.getElementById('logo2Preview').src = state.brand.logo2;
   if(state.brand.bg){ document.getElementById('bgPreview').src=state.brand.bg; document.getElementById('bgPreview').style.display='block'; }
   if(state.brand.pageBg){ document.getElementById('pageBgPreview').src=state.brand.pageBg; document.getElementById('pageBgPreview').style.display='block'; }
+  if(state.footer.bgImage){ document.getElementById('footerBgPreview').src=state.footer.bgImage; document.getElementById('footerBgPreview').style.display='block'; }
+  populateBgGallerySelect('headerBgGallery','header', state.brand.bg);
+  populateBgGallerySelect('pageBgGallery','page', state.brand.pageBg);
+  populateBgGallerySelect('footerBgGallery','footer', state.footer.bgImage);
 }
 
 document.getElementById('btnSaveTemplate').addEventListener('click', ()=>{
@@ -1153,6 +1244,11 @@ function buildFooterEl(){
   footer.style.borderRadius = (state.footer.radius||0) + 'px';
   footer.style.margin = '0 ' + (state.footer.margin||0) + 'px ' + (state.footer.margin||0) + 'px';
   footer.style.padding = (state.footer.padY||10) + 'px 24px';
+  if(state.footer.bgImage){
+    footer.style.backgroundImage = `linear-gradient(${hexToRgba(state.footer.bg||'#2b2320',.82)}, ${hexToRgba(state.footer.bg||'#2b2320',.82)}), url(${state.footer.bgImage})`;
+    footer.style.backgroundSize = 'cover';
+    footer.style.backgroundPosition = 'center';
+  }
   footer.innerHTML = `
     <img src="${state.brand.logo2||''}" title="Klicken um Logo zu ändern">
     <div class="foot-text" contenteditable="true" spellcheck="false">${escapeHtml(state.footer.text)}</div>
