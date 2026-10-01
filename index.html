@@ -134,36 +134,39 @@
     color:#8a7154;font-size:8px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;}
   .card .promo-style-select{min-width:0;max-width:112px;border:1px solid #ead7b7;background:#fffaf2;color:#704616;
     border-radius:999px;padding:3px 7px;font-family:inherit;font-size:8px;font-weight:700;line-height:1.2;outline:none;cursor:pointer;}
-  .card .promo-note-row{margin-top:4px;position:relative;background:#fffaf2;
-    border:2px solid var(--promo-bg,var(--orange));border-radius:11px;}
+  .card .promo-note-row{margin-top:5px;position:relative;background:#fffaf2;
+    border:2px solid var(--promo-bg,var(--orange));border-radius:13px;overflow:visible;}
   .card .promo-note{background:transparent;color:#6b3d00;border:none;padding:0;font-size:9px;
     font-weight:800;outline:none;line-height:1.25;}
-  .card .promo-img{width:32px;height:32px;flex:0 0 auto;border-radius:50%;
-    background:var(--promo-bg,var(--orange));box-shadow:0 0 0 2px #fffaf2,0 0 0 4px var(--promo-bg,var(--orange));
-    display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;color:#fff;
-    font-size:15px;}
-  .card .promo-img img{max-width:100%;max-height:100%;display:block;}
-  .card .promo-combo{padding:7px;}
-  .card .promo-combo-main{display:flex;align-items:center;justify-content:center;gap:7px;min-width:0;}
-  .card .promo-condition{min-width:0;max-width:43%;background:var(--promo-bg,var(--orange));color:#fff;
-    border-radius:7px;padding:5px 7px;font-size:9px;font-weight:900;line-height:1.05;text-align:center;outline:none;}
-  .card .promo-plus{font-size:16px;font-weight:900;color:var(--promo-bg,var(--orange));line-height:1;}
-  .card .promo-free{background:#19a661;color:#fff;border-radius:999px;padding:4px 7px;font-size:8px;
-    font-weight:900;letter-spacing:.04em;box-shadow:0 2px 6px rgba(25,166,97,.2);}
-  .card .promo-combo .promo-note{display:block;margin-top:7px;padding-top:6px;border-top:1px dashed #e7cda5;text-align:center;}
+  .card .promo-img{width:68px;height:62px;flex:0 0 auto;border-radius:12px;background:#fff;
+    border:3px solid var(--promo-bg,var(--orange));box-shadow:0 5px 12px rgba(116,69,13,.16);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;color:var(--promo-bg,var(--orange));
+    font-size:24px;padding:4px;}
+  .card .promo-img img{width:100%;height:100%;object-fit:contain;display:block;}
+  .card .promo-combo{padding:9px 10px 0;background:linear-gradient(135deg,#fffaf2 0%,#fff 100%);}
+  .card .promo-combo-main{display:grid;grid-template-columns:minmax(92px,1fr) 18px 68px auto;
+    align-items:center;justify-content:center;gap:7px;min-width:0;min-height:64px;}
+  .card .promo-condition{min-width:0;max-width:none;background:linear-gradient(135deg,var(--promo-bg,var(--orange)),#e9780b);color:#fff;
+    border-radius:9px;padding:8px 9px;font-size:10px;font-weight:900;line-height:1.15;text-align:center;outline:none;
+    box-shadow:0 4px 10px rgba(231,120,11,.2);}
+  .card .promo-plus{font-size:21px;font-weight:900;color:var(--promo-bg,var(--orange));line-height:1;text-align:center;}
+  .card .promo-free{background:#19a661;color:#fff;border-radius:999px;padding:5px 8px;font-size:9px;
+    font-weight:900;letter-spacing:.04em;box-shadow:0 3px 8px rgba(25,166,97,.24);white-space:nowrap;}
+  .card .promo-combo .promo-note{display:block;margin:8px -10px 0;padding:7px 10px 8px;border-top:1px dashed #e7cda5;
+    border-radius:0 0 11px 11px;background:#fff6e8;text-align:center;font-size:10px;}
   .card .promo-bubble{position:absolute;right:8px;top:7px;z-index:3;display:flex;flex-direction:column;
     align-items:center;filter:drop-shadow(0 4px 7px rgba(89,53,17,.23));cursor:pointer;}
-  .card .promo-bubble-img{width:58px;height:58px;border-radius:50%;background:#fffaf2;
+  .card .promo-bubble-img{width:76px;height:76px;border-radius:50%;background:#fffaf2;
     border:4px solid var(--promo-bg,var(--orange));display:flex;align-items:center;justify-content:center;overflow:hidden;
     color:var(--promo-bg,var(--orange));font-size:23px;box-shadow:inset 0 0 0 3px #fff;}
   .card .promo-bubble-img img{width:100%;height:100%;object-fit:contain;}
-  .card .promo-bubble-label{margin-top:-7px;background:#19a661;color:#fff;border-radius:999px;padding:4px 9px;
-    font-size:8px;font-weight:900;letter-spacing:.05em;border:2px solid #fff;white-space:nowrap;}
-  .card .promo-bubble-strip{padding:7px 10px;border:none;background:linear-gradient(105deg,#fff0d7,#fffaf2);
+  .card .promo-bubble-label{margin-top:-9px;background:#19a661;color:#fff;border-radius:999px;padding:5px 10px;
+    font-size:9px;font-weight:900;letter-spacing:.05em;border:2px solid #fff;white-space:nowrap;}
+  .card .promo-bubble-strip{padding:9px 11px;border:none;background:linear-gradient(105deg,#fff0d7,#fffaf2);
     border-left:5px solid var(--promo-bg,var(--orange));}
   .card .promo-bubble-strip .promo-condition{display:block;max-width:none;background:transparent;color:var(--promo-bg,var(--orange));
     padding:0 0 2px;border-radius:0;text-align:left;font-size:8px;letter-spacing:.08em;}
-  .card .promo-bubble-strip .promo-note{display:block;color:#30221a;font-size:10px;}
+  .card .promo-bubble-strip .promo-note{display:block;color:#30221a;font-size:11px;}
   .card .remove-promo{display:none;position:absolute;top:-6px;right:-6px;background:var(--danger);color:#fff;
     width:16px;height:16px;border-radius:50%;font-size:10px;line-height:16px;text-align:center;padding:0;}
   .card:hover .remove-promo{display:block;}
@@ -1643,7 +1646,7 @@ function renderCard(p){
       const bigPromoCondition = bigPromoRow.querySelector('.promo-condition');
       if(bigPromoCondition) bigPromoCondition.style.fontSize = '18px';
       const bigPromoImg = bigPromoRow.querySelector('.promo-img');
-      if(bigPromoImg){ bigPromoImg.style.width = '56px'; bigPromoImg.style.height = '56px'; bigPromoImg.style.fontSize = '26px'; }
+      if(bigPromoImg){ bigPromoImg.style.width = '110px'; bigPromoImg.style.height = '100px'; bigPromoImg.style.fontSize = '38px'; }
       const bigPromoFree = bigPromoRow.querySelector('.promo-free');
       if(bigPromoFree) bigPromoFree.style.fontSize = '16px';
     }
