@@ -130,11 +130,16 @@
   .card .add-promo{display:none;margin-top:6px;background:#fff6e5;color:#a67a1a;border:1px dashed #e6c171;
     border-radius:6px;padding:4px 8px;font-size:10px;font-weight:700;align-self:flex-start;}
   .card:hover .add-promo{display:inline-block;}
-  .card .promo-note-row{display:flex;align-items:flex-start;gap:4px;margin-top:6px;}
-  .card .promo-note{flex:1;background:#fff6e5;color:#8a5a00;border:1px solid #f0d08a;border-radius:6px;
-    padding:5px 8px;font-size:10px;font-weight:700;outline:none;line-height:1.3;}
-  .card .remove-promo{display:none;background:var(--danger);color:#fff;width:16px;height:16px;border-radius:50%;
-    font-size:10px;line-height:16px;text-align:center;padding:0;flex:0 0 auto;margin-top:2px;}
+  .card .promo-note-row{display:flex;align-items:center;gap:6px;margin-top:6px;
+    background:var(--promo-bg,var(--orange));border-radius:8px;padding:5px 7px;}
+  .card .promo-note{flex:1;background:transparent;color:#fff;border:none;
+    padding:0;font-size:10px;font-weight:700;outline:none;line-height:1.3;}
+  .card .promo-img{width:30px;height:30px;flex:0 0 auto;border-radius:5px;background:rgba(255,255,255,.28);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;color:#fff;
+    font-weight:800;font-size:15px;}
+  .card .promo-img img{max-width:100%;max-height:100%;display:block;}
+  .card .remove-promo{display:none;background:rgba(0,0,0,.35);color:#fff;width:16px;height:16px;border-radius:50%;
+    font-size:10px;line-height:16px;text-align:center;padding:0;flex:0 0 auto;}
   .card:hover .remove-promo{display:block;}
   .card .resize-handle{position:absolute;bottom:2px;right:2px;width:12px;height:12px;cursor:nwse-resize;
     border-right:3px solid #ccc;border-bottom:3px solid #ccc;}
@@ -358,6 +363,7 @@
       <div class="hint">Wähle den Ordner, der bei dir das "B:\"-Laufwerk aus CAO ersetzt (mit den gleichen Unterordnern, z. B. Getränke/Dosen/...). Die Bilder werden dauerhaft in diesem Browser gespeichert (auch nach Neuladen der Seite) – du musst sie nur einmal hochladen und bei Änderungen erneut auswählen, dann werden alte Bilder ersetzt.</div>
       <input type="file" id="folderInput" webkitdirectory multiple style="display:none;">
       <input type="file" id="singleImageInput" accept="image/*" style="display:none;">
+      <input type="file" id="promoImageInput" accept="image/*" style="display:none;">
       <div id="unmatchedList"></div>
     </div>
 
@@ -752,7 +758,7 @@ document.getElementById('btnApplyMapping').addEventListener('click', async ()=>{
       oldPrice: oldP, newPrice: newP,
       deposit: parseBool(get('deposit')),
       badge: badge,
-      promoNote: get('promoNote'),
+      promoNote: get('promoNote'), promoImage: null,
       ref: get('ref'),
       imgFileNorm: normalize(basename(get('imgFile')).replace(/\.[^.]+$/,'')),
       imgRelNorm: normalize(stripDriveLetter(get('imgFile')).replace(/\\/g,'/').replace(/\.[^.]+$/,'')),
@@ -919,6 +925,19 @@ document.getElementById('singleImageInput').addEventListener('change', async (e)
   e.target.value = '';
 });
 
+let pickPromoImageForProductId = null;
+document.getElementById('promoImageInput').addEventListener('change', async (e)=>{
+  const file = e.target.files[0];
+  if(!file || !pickPromoImageForProductId) return;
+  const p = state.products.find(p=>p.id===pickPromoImageForProductId);
+  if(p){
+    syncDomToState();
+    p.promoImage = await fileToDataUrl(file);
+    renderPages(true);
+  }
+  e.target.value = '';
+});
+
 /* ============================= HEADER / FOOTER / BRAND BINDINGS ============================= */
 function bindText(id, path){
   document.getElementById(id).addEventListener('input', (e)=>{
@@ -965,6 +984,13 @@ async function uploadBrandingAsset(file, key){
 }
 
 /* ---- Hintergrund-Galerie: mehrere gespeicherte Hintergründe pro Bereich, zur Auswahl ---- */
+const BUILTIN_BG_PRESETS = {
+  page: [
+    { name: 'Design 3 – Aktions-Strahlen', url: 'assets/backgrounds/aktion-bg-03-strahlen.svg' },
+    { name: 'Design 4 – Produkt-Raster', url: 'assets/backgrounds/aktion-bg-04-raster.svg' },
+    { name: 'Design 7 – Bordeaux/Kupfer', url: 'assets/backgrounds/aktion-bg-07-bordeaux-kupfer.svg' }
+  ]
+};
 async function uploadToBgGallery(file, folder){
   try{
     const ext = (file.name.split('.').pop() || 'png').toLowerCase().replace(/[^a-z0-9]/g,'') || 'png';
@@ -991,8 +1017,14 @@ async function listBgGallery(folder){
 async function populateBgGallerySelect(selectId, folder, currentUrl){
   const sel = document.getElementById(selectId);
   const items = await listBgGallery(folder);
-  sel.innerHTML = '<option value="">— Kein Hintergrundbild —</option>' +
-    items.map(it=> `<option value="${it.url}">${escapeHtml(it.name)}</option>`).join('');
+  const presets = BUILTIN_BG_PRESETS[folder] || [];
+  const presetOptions = presets.length
+    ? `<optgroup label="Design-Hintergründe">${presets.map(it=> `<option value="${it.url}">${escapeHtml(it.name)}</option>`).join('')}</optgroup>`
+    : '';
+  const galleryOptions = items.length
+    ? `<optgroup label="Eigene Uploads">${items.map(it=> `<option value="${it.url}">${escapeHtml(it.name)}</option>`).join('')}</optgroup>`
+    : '';
+  sel.innerHTML = '<option value="">— Kein Hintergrundbild —</option>' + presetOptions + galleryOptions;
   if(currentUrl){
     const match = [...sel.options].find(o=> currentUrl.startsWith(o.value) && o.value);
     if(match) sel.value = match.value;
@@ -1099,7 +1131,7 @@ document.getElementById('btnApplyLayout').addEventListener('click', ()=>{
 document.getElementById('btnAddCard').addEventListener('click', ()=>{
   state.products.push({
     id:'p'+(uid++), name:'Neues Produkt', pack:'', unit:'', oldPrice:null, newPrice:null,
-    deposit:false, badge:'', promoNote:'', ref:'', imgFileNorm:'', imgRelNorm:'', imgData:null, imgSource:'none', transparent:false,
+    deposit:false, badge:'', promoNote:'', promoImage:null, ref:'', imgFileNorm:'', imgRelNorm:'', imgData:null, imgSource:'none', transparent:false,
     bundleQty:null, perUnit:false, cardW:null, cardH:null, imgH:null
   });
   renderPages();
@@ -1292,8 +1324,9 @@ function renderPages(skipSync){
     page.className = 'page';
     if(state.brand.pageBg){
       page.style.backgroundImage = `url(${state.brand.pageBg})`;
-      page.style.backgroundSize = 'cover';
+      page.style.backgroundSize = '100% 100%';
       page.style.backgroundPosition = 'center';
+      page.style.backgroundRepeat = 'no-repeat';
     }
 
     // header
@@ -1429,7 +1462,11 @@ function renderCard(p){
       <div class="price-new-col">${priceNewBlock}<div class="price-resize" title="Textgröße (Name, Gebinde, Preise, Badge) ziehen"></div></div>
     </div>
     ${p.bundleQty>1 ? `<button class="unit-toggle" data-toggle="${p.id}">${toggleLabel}</button>` : ''}
-    ${p.promoNote ? `<div class="promo-note-row"><div class="promo-note" contenteditable="true" spellcheck="false">${escapeHtml(p.promoNote)}</div><button class="remove-promo" title="Hinweis entfernen">×</button></div>` : `<button class="add-promo" title="Sonderhinweis hinzufügen (z. B. Ab 2 Kolli: ... gratis)">+ Hinweis</button>`}
+    ${p.promoNote ? `<div class="promo-note-row" style="--promo-bg:${state.header.bg1||'#f7941e'}">
+      <div class="promo-img" title="Bild für Hinweis wählen (z. B. Gratis-Artikel)">${p.promoImage ? `<img src="${p.promoImage}">` : '+'}</div>
+      <div class="promo-note" contenteditable="true" spellcheck="false">${escapeHtml(p.promoNote)}</div>
+      <button class="remove-promo" title="Hinweis entfernen">×</button>
+    </div>` : `<button class="add-promo" title="Sonderhinweis hinzufügen (z. B. Ab 2 Kolli: ... gratis)">+ Hinweis</button>`}
     <div class="resize-handle" title="Kartengröße ziehen"></div>
     <div class="card-controls">
       <button class="save-card" title="Diese Karte als Bild speichern">💾</button>
@@ -1468,7 +1505,15 @@ function renderCard(p){
     removePromoBtn.addEventListener('click', ()=>{
       syncDomToState();
       p.promoNote = '';
+      p.promoImage = null;
       renderPages(true);
+    });
+  }
+  const promoImgEl = card.querySelector('.promo-img');
+  if(promoImgEl){
+    promoImgEl.addEventListener('click', ()=>{
+      pickPromoImageForProductId = p.id;
+      document.getElementById('promoImageInput').click();
     });
   }
   const removeBgBtn = card.querySelector('.remove-bg');

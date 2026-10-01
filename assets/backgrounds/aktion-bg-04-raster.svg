@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="794" height="1123" viewBox="0 0 794 1123">
+  <defs>
+    <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#fffdf9"/>
+    </linearGradient>
+    <pattern id="grid" width="14" height="14" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r=".75" fill="#aeb5bd" opacity=".25"/>
+    </pattern>
+  </defs>
+  <rect width="794" height="1123" fill="url(#paper)"/>
+  <rect width="794" height="1123" fill="url(#grid)"/>
+  <g fill="#fffaf3" fill-opacity=".2" stroke="#f7941e" stroke-opacity=".22" stroke-width="1.1">
+    <rect x="36" y="126" width="346" height="252" rx="22"/>
+    <rect x="412" y="126" width="346" height="252" rx="22"/>
+    <rect x="36" y="411" width="346" height="252" rx="22"/>
+    <rect x="412" y="411" width="346" height="252" rx="22"/>
+    <rect x="36" y="696" width="346" height="252" rx="22"/>
+    <rect x="412" y="696" width="346" height="252" rx="22"/>
+  </g>
+  <g fill="none" stroke="#f7941e" stroke-width="1.35" stroke-linecap="round" opacity=".65">
+    <path d="M15 102v68M15 102h175"/><path d="M604 102h175v68"/>
+    <path d="M15 679v-74M15 679h175"/><path d="M604 679h175v74"/>
+    <path d="M15 972v-76M15 972h175"/><path d="M604 972h175v-76"/>
+  </g>
+  <g fill="#f7941e" opacity=".82">
+    <circle cx="15" cy="102" r="3.4"/><circle cx="779" cy="102" r="3.4"/>
+    <circle cx="15" cy="679" r="3.4"/><circle cx="779" cy="679" r="3.4"/>
+    <circle cx="15" cy="972" r="3.4"/><circle cx="779" cy="972" r="3.4"/>
+  </g>
+</svg>

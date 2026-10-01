@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="794" height="1123" viewBox="0 0 794 1123">
+  <defs>
+    <radialGradient id="blush" cx="50%" cy="47%" r="72%">
+      <stop offset="0" stop-color="#fffdfb"/>
+      <stop offset="1" stop-color="#fff2ec"/>
+    </radialGradient>
+    <linearGradient id="copper" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f2a15e"/>
+      <stop offset="1" stop-color="#b95627"/>
+    </linearGradient>
+  </defs>
+  <rect width="794" height="1123" fill="url(#blush)"/>
+  <g fill="#fff" fill-opacity=".22" stroke="#9f2047" stroke-width="1.35" opacity=".78">
+    <rect x="31" y="126" width="352" height="252" rx="24"/>
+    <rect x="411" y="126" width="352" height="252" rx="24"/>
+    <rect x="31" y="411" width="352" height="252" rx="24"/>
+    <rect x="411" y="411" width="352" height="252" rx="24"/>
+    <rect x="31" y="696" width="352" height="252" rx="24"/>
+    <rect x="411" y="696" width="352" height="252" rx="24"/>
+  </g>
+  <g fill="none" stroke="url(#copper)" stroke-width="1.55" stroke-linecap="round" opacity=".92">
+    <path d="M48 190v-43q0-10 10-10h55M366 313v43q0 10-10 10h-55"/>
+    <path d="M428 190v-43q0-10 10-10h55M746 313v43q0 10-10 10h-55"/>
+    <path d="M48 475v-43q0-10 10-10h55M366 598v43q0 10-10 10h-55"/>
+    <path d="M428 475v-43q0-10 10-10h55M746 598v43q0 10-10 10h-55"/>
+    <path d="M48 760v-43q0-10 10-10h55M366 883v43q0 10-10 10h-55"/>
+    <path d="M428 760v-43q0-10 10-10h55M746 883v43q0 10-10 10h-55"/>
+    <path d="M31 394h732M31 679h732" opacity=".55"/>
+  </g>
+  <g fill="url(#copper)">
+    <circle cx="31" cy="394" r="5"/><circle cx="397" cy="394" r="5"/><circle cx="763" cy="394" r="5"/>
+    <circle cx="31" cy="679" r="5"/><circle cx="397" cy="679" r="5"/><circle cx="763" cy="679" r="5"/>
+  </g>
+</svg>
