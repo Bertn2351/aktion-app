@@ -139,12 +139,15 @@
   .card .old-price{font-size:12px;color:#999;text-decoration:line-through;outline:none;}
   .card .price-new-col{text-align:right;}
   .card .unit-price-display{font-size:22px;font-weight:800;color:var(--orange-dark);line-height:1.1;}
-  .card .unit-price-display[contenteditable="true"]{outline:none;border-bottom:1px dashed #d8ab6a;min-width:52px;}
+  .card .unit-price-display[contenteditable="true"]{outline:none;min-width:52px;}
   .card .unit-price-display[contenteditable="true"]:empty::before{content:"Stückpreis";color:#c0a786;font-size:9px;font-weight:650;}
   .card .new-price{font-size:22px;font-weight:800;color:var(--orange-dark);outline:none;}
-  .card .unit-price-display + .new-price{font-size:12px;font-weight:700;color:#a67a3d;}
+  .card .price-line{display:flex;align-items:baseline;justify-content:flex-end;gap:6px;white-space:nowrap;}
+  .card .price-line + .price-line{margin-top:3px;}
+  .card .price-secondary .new-price{font-size:12px;font-weight:700;color:#a67a3d;}
   .card .unit-note{font-size:9px;color:#999;display:block;text-align:right;}
-  .card .price-unit-note[contenteditable="true"]{outline:none;border-bottom:1px dashed #d7d9dd;min-width:45px;}
+  .card .price-line .unit-note{display:inline-block;text-align:left;}
+  .card .price-unit-note[contenteditable="true"]{outline:none;min-width:36px;}
   .card .price-unit-note[contenteditable="true"]:empty::before{content:"Preistext";color:#bbb;}
   .card .unit-toggle{display:inline-flex;align-items:center;justify-content:center;align-self:flex-end;margin-top:5px;background:#fff8ef;
     border:1px solid #f1d1a7;color:#9a621f;font-size:8px;text-decoration:none;padding:4px 7px;font-weight:750;border-radius:999px;box-shadow:none;}
@@ -263,13 +266,14 @@
   .layout-catalog .catalog-item .name{font-size:12px;font-weight:900;line-height:1.12;min-height:0;}
   .layout-catalog .catalog-item .pack{font-size:9px;color:#444;line-height:1.2;margin-top:4px;}
   .layout-catalog .catalog-item .price-row{margin-top:5px;padding:0;display:block;}
+  .layout-catalog .catalog-item .price-line{justify-content:flex-start;gap:4px;}
   .layout-catalog .catalog-item .new-price{display:flex;align-items:flex-start;font-size:31px;font-weight:950;line-height:.9;color:#111;letter-spacing:-.05em;}
   .layout-catalog .catalog-item .new-price sup{font-size:15px;line-height:1;margin:1px 0 0 2px;letter-spacing:-.03em;}
   .layout-catalog .catalog-item .new-price .currency{font-size:12px;line-height:1;margin:4px 0 0 2px;letter-spacing:0;}
   .layout-catalog .catalog-item .old-price{display:inline-block;margin-top:4px;padding:1px 5px;border:1px solid #e9c98d;
     border-radius:5px;background:#fffaf0;font-size:10px;color:#555;text-decoration:line-through;}
-  .layout-catalog .catalog-item .price-unit-note{margin-top:2px;text-align:left;font-size:7px;line-height:1.15;}
-  .layout-catalog .catalog-unit-line{display:flex;align-items:baseline;gap:4px;margin-top:4px;color:#8a5b1f;}
+  .layout-catalog .catalog-item .price-unit-note{margin:0;text-align:left;font-size:7px;line-height:1.15;}
+  .layout-catalog .catalog-unit-line{display:flex;align-items:baseline;justify-content:flex-start;gap:4px;margin-top:4px;color:#8a5b1f;}
   .layout-catalog .catalog-unit-line .catalog-unit-caption{font-size:7px;font-weight:800;text-transform:uppercase;}
   .layout-catalog .catalog-unit-line .unit-price-display{font-size:14px;line-height:1;font-weight:900;color:#df6e08;}
   .layout-catalog .catalog-item .unit-toggle{align-self:flex-start;margin-top:5px;padding:3px 6px;font-size:7px;}
@@ -805,10 +809,21 @@ function mainPriceLabel(p){
   if(p.priceLabel!==undefined && p.priceLabel!==null) return p.priceLabel;
   return p.unit ? 'je ' + expandUnit(p.unit) : 'je Karton';
 }
+function inferredPiecePriceLabel(p){
+  const text = ((p.pack||'') + ' ' + (p.name||'')).toLowerCase();
+  if(/(?:^|[^a-z])kg\b/.test(text)) return 'je kg';
+  if(/(?:^|[^a-z])(gramm|gr\.?|g)\b/.test(text)) return 'je g';
+  if(/(?:^|[^a-z])(liter|ltr\.?|l)\b/.test(text)) return 'je Liter';
+  if(/(?:^|[^a-z])ml\b/.test(text)) return 'je ml';
+  return 'je Stück';
+}
 function piecePriceLabel(p){
-  if(p.unitPriceLabel!==undefined && p.unitPriceLabel!==null) return p.unitPriceLabel;
-  const main = mainPriceLabel(p);
-  return 'je Stück' + (main ? ' · ' + main + ' oben' : '');
+  const inferred = inferredPiecePriceLabel(p);
+  if(p.unitPriceLabel===undefined || p.unitPriceLabel===null) return inferred;
+  const current = String(p.unitPriceLabel).trim();
+  if(current.includes('·')) return inferred;
+  if(/^je\s+(stück|stk\.?)$/i.test(current) && inferred!=='je Stück') return inferred;
+  return current || inferred;
 }
 function enablePiecePrice(p){
   if(p.unitPrice===undefined || p.unitPrice===null){
@@ -982,7 +997,7 @@ document.getElementById('btnApplyMapping').addEventListener('click', async ()=>{
     let unitPrice = parseNum(get('unitPrice'));
     if(unitPrice===null && bundle.bundleQty>1 && newP!==null) unitPrice = newP / bundle.bundleQty;
     const priceLabel = unitText ? 'je ' + expandUnit(unitText) : 'je Karton';
-    const unitPriceLabel = 'je Stück' + (priceLabel ? ' · ' + priceLabel + ' oben' : '');
+    const unitPriceLabel = inferredPiecePriceLabel({pack:packText,name:nameText});
     return {
       id: 'p'+(uid++),
       name: nameText,
@@ -1401,7 +1416,7 @@ document.getElementById('btnEnableUnitPricesAll').addEventListener('click', ()=>
 document.getElementById('btnAddCard').addEventListener('click', ()=>{
   state.products.push({
     id:'p'+(uid++), name:'Neues Produkt', category:'', pack:'', unit:'', oldPrice:null, newPrice:null,
-    unitPrice:null, priceLabel:'je Karton', unitPriceLabel:'je Stück · je Karton oben',
+    unitPrice:null, priceLabel:'je Karton', unitPriceLabel:'je Stück',
     deposit:false, badge:'', badgeHidden:false, promoNote:'', promoCondition:'', promoStyle:'combo', promoColor:'green', promoImage:null,
     ref:'', imgFileNorm:'', imgRelNorm:'', imgData:null, imgSource:'none', transparent:false,
     bundleQty:null, perUnit:false, cardW:null, cardH:null, imgH:null
@@ -1735,12 +1750,10 @@ function renderCatalogItem(p){
       <div class="name" contenteditable="true" spellcheck="false">${escapeHtml(p.name)}</div>
       <div class="pack" contenteditable="true" spellcheck="false">${escapeHtml(p.pack)}</div>
       <div class="price-row">
-        <div class="new-price" contenteditable="true" spellcheck="false">${catalogPriceHtml(p.newPrice)}</div>
+        <div class="price-line"><div class="new-price" contenteditable="true" spellcheck="false">${catalogPriceHtml(p.newPrice)}</div><span class="unit-note price-unit-note" data-label-kind="main" contenteditable="true" spellcheck="false">${escapeHtml(mainPriceLabel(p))}</span></div>
         ${p.oldPrice!==null ? `<div class="old-price" contenteditable="true" spellcheck="false">${euro(p.oldPrice)}</div>` : `<div class="old-price" contenteditable="true" spellcheck="false" style="opacity:.25"></div>`}
       </div>
-      <span class="unit-note price-unit-note" data-label-kind="main" contenteditable="true" spellcheck="false">${escapeHtml(mainPriceLabel(p))}</span>
-      ${p.perUnit ? `<div class="catalog-unit-line"><span class="catalog-unit-caption">Stückpreis</span><span class="unit-price-display" contenteditable="true" spellcheck="false">${unitValue!==null ? euro(unitValue) : ''}</span></div>
-      <span class="unit-note price-unit-note" data-label-kind="unit" contenteditable="true" spellcheck="false">${escapeHtml(piecePriceLabel(p))}</span>` : ''}
+      ${p.perUnit ? `<div class="catalog-unit-line"><span class="catalog-unit-caption">Stückpreis</span><span class="unit-price-display" contenteditable="true" spellcheck="false">${unitValue!==null ? euro(unitValue) : ''}</span><span class="unit-note price-unit-note" data-label-kind="unit" contenteditable="true" spellcheck="false">${escapeHtml(piecePriceLabel(p))}</span></div>` : ''}
       <button class="unit-toggle" type="button">${unitToggleLabel}</button>
       ${p.promoNote ? `<div class="catalog-promo" style="${catalogPromoVars(p)}">${escapeHtml(p.promoNote)}</div>` : ''}
     </div>
@@ -2007,13 +2020,11 @@ function renderCard(p){
   if(pieceActive){
     const unitValue = productUnitPrice(p);
     priceNewBlock = `
-      <div class="unit-price-display" contenteditable="true" spellcheck="false">${unitValue!==null ? euro(unitValue) : ''}</div>
-      <div class="new-price" contenteditable="true" spellcheck="false">${p.newPrice!==null ? euro(p.newPrice) : ''}</div>
-      <span class="unit-note price-unit-note" data-label-kind="unit" contenteditable="true" spellcheck="false">${escapeHtml(piecePriceLabel(p))}</span>`;
+      <div class="price-line"><div class="unit-price-display" contenteditable="true" spellcheck="false">${unitValue!==null ? euro(unitValue) : ''}</div><span class="unit-note price-unit-note" data-label-kind="unit" contenteditable="true" spellcheck="false">${escapeHtml(piecePriceLabel(p))}</span></div>
+      <div class="price-line price-secondary"><div class="new-price" contenteditable="true" spellcheck="false">${p.newPrice!==null ? euro(p.newPrice) : ''}</div><span class="unit-note price-unit-note" data-label-kind="main" contenteditable="true" spellcheck="false">${escapeHtml(mainPriceLabel(p))}</span></div>`;
   } else {
     priceNewBlock = `
-      <div class="new-price" contenteditable="true" spellcheck="false">${p.newPrice!==null ? euro(p.newPrice) : ''}</div>
-      <span class="unit-note price-unit-note" data-label-kind="main" contenteditable="true" spellcheck="false">${escapeHtml(mainPriceLabel(p))}</span>`;
+      <div class="price-line"><div class="new-price" contenteditable="true" spellcheck="false">${p.newPrice!==null ? euro(p.newPrice) : ''}</div><span class="unit-note price-unit-note" data-label-kind="main" contenteditable="true" spellcheck="false">${escapeHtml(mainPriceLabel(p))}</span></div>`;
   }
   const toggleLabel = pieceActive ? 'Stückpreis ausblenden' : '+ Stückpreis eingeben';
 
