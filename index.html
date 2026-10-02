@@ -294,6 +294,25 @@
   .exporting .card-controls, .exporting .drag-handle, .exporting .unit-toggle,
   .exporting .remove-bg, .exporting .price-resize, .exporting .add-promo, .exporting .remove-promo,
   .exporting .promo-style-controls{display:none !important;}
+  .single-card-export{width:650px !important;min-height:0 !important;height:auto !important;padding:36px !important;border-radius:20px !important;overflow:visible;}
+  .single-card-export .badge{top:18px;left:18px;z-index:8;font-size:18px !important;line-height:1;padding:8px 13px;border-radius:9px;box-shadow:0 4px 10px rgba(70,48,0,.16);}
+  .single-card-export .deposit{top:18px;right:18px;width:42px;height:48px;}
+  .single-card-export .img-wrap{height:420px !important;margin-bottom:18px;border-radius:16px;}
+  .single-card-export.has-export-promo .img-wrap{height:320px !important;}
+  .single-card-export .name{width:100%;max-width:100%;line-height:1.18;margin-bottom:7px;overflow-wrap:anywhere;word-break:normal;hyphens:auto;}
+  .single-card-export .pack{line-height:1.3;margin-top:2px;}
+  .single-card-export .price-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);align-items:end;gap:28px;margin-top:20px;padding-top:0;}
+  .single-card-export .price-row>div:first-child{min-width:0;}
+  .single-card-export .price-new-col{width:100%;max-width:none !important;min-width:0;padding-right:0;}
+  .single-card-export .price-line,.single-card-export .old-price-line{gap:8px;flex-wrap:wrap;row-gap:2px;}
+  .single-card-export .price-line{justify-content:flex-end;}
+  .single-card-export .old-price-line{justify-content:flex-start;}
+  .single-card-export .unit-note{font-size:15px !important;line-height:1.15;white-space:nowrap;}
+  .single-card-export .unit-price-display{font-size:52px !important;line-height:1;}
+  .single-card-export .new-price{font-size:52px !important;line-height:1;}
+  .single-card-export .price-secondary .new-price{font-size:34px !important;color:#a67a3d;}
+  .single-card-export .old-price{font-size:22px !important;line-height:1.05;}
+  .single-card-export .promo-note-row{max-width:100%;}
   .sub-price-line{font-size:9px;color:#aaa;text-align:right;margin-top:1px;}
 
   #printRoot{display:none;}
@@ -2208,17 +2227,21 @@ function renderCard(p){
     wrap.style.alignItems = 'center';
     wrap.style.justifyContent = 'center';
     const bigCard = renderCard(p);
+    bigCard.classList.add('single-card-export');
+    if(p.promoNote) bigCard.classList.add('has-export-promo');
     bigCard.style.width = '650px';
+    bigCard.style.minHeight = '0';
+    bigCard.style.height = 'auto';
     bigCard.style.padding = '36px';
     const setFontSize = (sel, px)=>{ const el = bigCard.querySelector(sel); if(el) el.style.fontSize = px; };
     const nameLength = (p.name||'').trim().length;
     const exportNameSize = nameLength>52 ? 20 : (nameLength>42 ? 22 : (nameLength>32 ? 25 : 28));
     setFontSize('.name', exportNameSize + 'px');
     setFontSize('.pack', '19px');
-    setFontSize('.old-price', '24px');
-    setFontSize('.new-price', '52px');
+    setFontSize('.old-price', '22px');
+    setFontSize('.new-price', p.perUnit ? '34px' : '52px');
     setFontSize('.unit-price-display', '52px');
-    setFontSize('.badge', '20px');
+    setFontSize('.badge', '18px');
     bigCard.querySelectorAll('.unit-note').forEach(el=> el.style.fontSize = '15px');
     const bigName = bigCard.querySelector('.name');
     if(bigName){
