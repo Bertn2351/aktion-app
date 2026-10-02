@@ -55,6 +55,9 @@
     width:100%;padding:9px 10px;border:1px solid #d9dde3;border-radius:9px;font-size:13px;font-family:inherit;background:#fbfcfd;color:var(--ink);outline:none;transition:.18s ease;}
   .section input:hover,.section textarea:hover,.section select:hover{border-color:#bec4cc;background:#fff;}
   .section input:focus,.section textarea:focus,.section select:focus{border-color:var(--orange);background:#fff;box-shadow:0 0 0 3px rgba(247,148,30,.14);}
+  .range-control{display:grid;grid-template-columns:1fr 45px;align-items:center;gap:9px;margin-top:5px;}
+  .range-control input[type=range]{width:100%;accent-color:var(--orange);cursor:pointer;}
+  .range-control output{padding:5px 6px;border-radius:7px;background:#fff6e9;color:#8d5518;font-size:10px;font-weight:800;text-align:center;}
   .section textarea{min-height:92px;resize:vertical;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;line-height:1.5;}
   .quick-form-box{padding:12px;margin-bottom:14px;border:1px solid #ffd5a3;border-radius:11px;background:linear-gradient(145deg,#fff9f1,#fff3e4);}
   .quick-form-box .quick-title{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;font-size:12px;font-weight:800;color:#4b3520;}
@@ -104,6 +107,8 @@
     width:210mm;min-height:297mm;background:#fff;box-shadow:0 22px 50px rgba(30,34,39,.15),0 4px 12px rgba(30,34,39,.09);
     position:relative;overflow:hidden;display:flex;flex-direction:column;
   }
+  .page-bg-layer{position:absolute;inset:0;z-index:0;pointer-events:none;background-repeat:no-repeat;background-position:center;}
+  .page>.page-bg-layer~*{position:relative;z-index:1;}
   .page-header{
     position:relative;padding:14px 24px 26px;color:#fff;
     background:linear-gradient(135deg,var(--orange) 0%,var(--orange-dark) 100%);
@@ -685,6 +690,16 @@
       <img id="pageBgPreview" style="display:none;">
       <button class="secondary small" id="btnClearPageBg" style="margin-top:6px;">Seiten-Hintergrund entfernen</button>
       <input type="file" id="pageBgInput" accept="image/*" style="display:none;">
+      <label>Hintergrund transparenter machen</label>
+      <div class="range-control">
+        <input type="range" id="pageBgTransparencyInput" min="0" max="90" value="0" step="5">
+        <output id="pageBgTransparencyValue">0%</output>
+      </div>
+      <label>Hintergrund heller machen</label>
+      <div class="range-control">
+        <input type="range" id="pageBgLightnessInput" min="0" max="80" value="0" step="5">
+        <output id="pageBgLightnessValue">0%</output>
+      </div>
       <label>Akzentfarbe</label>
       <input type="text" id="accentInput" value="#f7941e">
     </div>
@@ -785,7 +800,7 @@
 <script>
 /* ============================= STATE ============================= */
 const state = {
-  brand: { logo1: 'assets/logo1-default.svg', logo2: 'assets/logo2-default.png', bg: null, pageBg: null, accent: '#f7941e' },
+  brand: { logo1: 'assets/logo1-default.svg', logo2: 'assets/logo2-default.png', bg: null, pageBg: null, pageBgTransparency: 0, pageBgLightness: 0, accent: '#f7941e' },
   header: { kicker: 'ABHOLUNG UND LIEFERUNG', title: 'Aktion', validity: '–', titleFont: '',
             bg1: '#f7941e', bg2: '#e8720c', radius: 0, margin: 0, padY: 18 },
   footer: { text: 'G.A.B GmbH · IZ NÖ-Süd Straße 14, 37B Obj. 37B A-2351 Wiener Neudorf ÖSTERREICH · Tel. +43 2236 50 60 65 · office@global-produktion.com',
@@ -1390,6 +1405,9 @@ async function uploadBrandingAsset(file, key){
 /* ---- Hintergrund-Galerie: mehrere gespeicherte Hintergründe pro Bereich, zur Auswahl ---- */
 const BUILTIN_BG_PRESETS = {
   page: [
+    { name: 'Neu 1 – Gastro-Muster', url: 'assets/backgrounds/page-bg-gastro.png' },
+    { name: 'Neu 2 – Orange Bögen', url: 'assets/backgrounds/page-bg-arcs.png' },
+    { name: 'Neu 3 – Premium Clean', url: 'assets/backgrounds/page-bg-premium.png' },
     { name: 'Design 3 – Aktions-Strahlen', url: 'assets/backgrounds/aktion-bg-03-strahlen.svg' },
     { name: 'Design 4 – Produkt-Raster', url: 'assets/backgrounds/aktion-bg-04-raster.svg' },
     { name: 'Design 7 – Bordeaux/Kupfer', url: 'assets/backgrounds/aktion-bg-07-bordeaux-kupfer.svg' }
@@ -1500,6 +1518,18 @@ setupImageSwap('logo2Drop','logo2Input','logo2Preview','brand.logo2','logo2');
 setupBgGallery({ selectId:'headerBgGallery', dropId:'bgDrop', inputId:'bgInput', previewId:'bgPreview', folder:'header', statePath:'brand.bg' });
 setupBgGallery({ selectId:'pageBgGallery', dropId:'pageBgDrop', inputId:'pageBgInput', previewId:'pageBgPreview', folder:'page', statePath:'brand.pageBg' });
 setupBgGallery({ selectId:'footerBgGallery', dropId:'footerBgDrop', inputId:'footerBgImgInput', previewId:'footerBgPreview', folder:'footer', statePath:'footer.bgImage' });
+
+function updatePageBgControls(render){
+  const transparencyInput = document.getElementById('pageBgTransparencyInput');
+  const lightnessInput = document.getElementById('pageBgLightnessInput');
+  state.brand.pageBgTransparency = parseInt(transparencyInput.value,10) || 0;
+  state.brand.pageBgLightness = parseInt(lightnessInput.value,10) || 0;
+  document.getElementById('pageBgTransparencyValue').textContent = state.brand.pageBgTransparency + '%';
+  document.getElementById('pageBgLightnessValue').textContent = state.brand.pageBgLightness + '%';
+  if(render) renderPages(true);
+}
+document.getElementById('pageBgTransparencyInput').addEventListener('input', ()=>updatePageBgControls(true));
+document.getElementById('pageBgLightnessInput').addEventListener('input', ()=>updatePageBgControls(true));
 
 document.getElementById('btnClearBg').addEventListener('click', ()=>{
   state.brand.bg = null;
@@ -1619,6 +1649,9 @@ function applyLoadedDesignToInputs(){
   document.getElementById('footerMarginInput').value = state.footer.margin || 0;
   document.getElementById('footerPadInput').value = state.footer.padY || 10;
   document.getElementById('accentInput').value = state.brand.accent;
+  document.getElementById('pageBgTransparencyInput').value = state.brand.pageBgTransparency ?? 0;
+  document.getElementById('pageBgLightnessInput').value = state.brand.pageBgLightness ?? 0;
+  updatePageBgControls(false);
   document.documentElement.style.setProperty('--orange', state.brand.accent);
   if(state.brand.logo1) document.getElementById('logoPreview').src = state.brand.logo1;
   if(state.brand.logo2) document.getElementById('logo2Preview').src = state.brand.logo2;
@@ -2062,6 +2095,18 @@ function buildCatalogGroupsEl(products){
   return root;
 }
 
+function applyPageBackground(page, size){
+  if(!state.brand.pageBg) return;
+  const transparency = Math.max(0, Math.min(90, Number(state.brand.pageBgTransparency)||0));
+  const lightness = Math.max(0, Math.min(80, Number(state.brand.pageBgLightness)||0));
+  const layer = document.createElement('div');
+  layer.className = 'page-bg-layer';
+  layer.style.backgroundImage = `linear-gradient(rgba(255,255,255,${lightness/100}), rgba(255,255,255,${lightness/100})), url(${state.brand.pageBg})`;
+  layer.style.backgroundSize = size || '100% 100%';
+  layer.style.opacity = String(1 - transparency/100);
+  page.appendChild(layer);
+}
+
 function renderPages(skipSync){
   if(!skipSync) syncDomToState();
   const stage = document.getElementById('stage');
@@ -2087,12 +2132,7 @@ function renderPages(skipSync){
     const page = document.createElement('div');
     const catalogMode = state.layout.mode === 'catalog';
     page.className = catalogMode ? 'page layout-catalog' : 'page';
-    if(state.brand.pageBg){
-      page.style.backgroundImage = `url(${state.brand.pageBg})`;
-      page.style.backgroundSize = '100% 100%';
-      page.style.backgroundPosition = 'center';
-      page.style.backgroundRepeat = 'no-repeat';
-    }
+    applyPageBackground(page, '100% 100%');
 
     // header
     page.appendChild(catalogMode ? buildCatalogHeaderEl() : buildHeaderEl());
@@ -2399,11 +2439,7 @@ function renderCard(p){
     tempPage.style.position = 'fixed';
     tempPage.style.left = '-9999px';
     tempPage.style.top = '0';
-    if(state.brand.pageBg){
-      tempPage.style.backgroundImage = `url(${state.brand.pageBg})`;
-      tempPage.style.backgroundSize = 'cover';
-      tempPage.style.backgroundPosition = 'center';
-    }
+    applyPageBackground(tempPage, 'cover');
     tempPage.appendChild(buildHeaderEl());
     const wrap = document.createElement('div');
     wrap.className = 'cards-wrap';
