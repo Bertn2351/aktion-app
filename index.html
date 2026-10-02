@@ -133,7 +133,7 @@
   .card .img-wrap .placeholder{font-size:11px;color:#aaa;text-align:center;padding:8px;}
   .card .img-wrap .img-resize{position:absolute;bottom:2px;right:2px;width:14px;height:14px;background:rgba(0,0,0,.25);
     border-radius:3px;cursor:ns-resize;}
-  .card .name{font-size:13px;font-weight:700;line-height:1.25;outline:none;min-height:1.4em;}
+  .card .name{font-size:13px;font-weight:700;line-height:1.25;outline:none;min-height:1.4em;overflow-wrap:anywhere;word-break:normal;hyphens:auto;}
   .card .pack{font-size:10px;color:#888;margin-top:2px;outline:none;}
   .card .price-row{margin-top:auto;padding-top:8px;display:flex;align-items:flex-end;justify-content:space-between;gap:6px;}
   .card .old-price{font-size:12px;color:#999;text-decoration:line-through;outline:none;}
@@ -2211,13 +2211,29 @@ function renderCard(p){
     bigCard.style.width = '650px';
     bigCard.style.padding = '36px';
     const setFontSize = (sel, px)=>{ const el = bigCard.querySelector(sel); if(el) el.style.fontSize = px; };
-    setFontSize('.name', '28px');
+    const nameLength = (p.name||'').trim().length;
+    const exportNameSize = nameLength>52 ? 20 : (nameLength>42 ? 22 : (nameLength>32 ? 25 : 28));
+    setFontSize('.name', exportNameSize + 'px');
     setFontSize('.pack', '19px');
     setFontSize('.old-price', '24px');
     setFontSize('.new-price', '52px');
     setFontSize('.unit-price-display', '52px');
     setFontSize('.badge', '20px');
-    bigCard.querySelectorAll('.unit-note').forEach(el=> el.style.fontSize = '18px');
+    bigCard.querySelectorAll('.unit-note').forEach(el=> el.style.fontSize = '15px');
+    const bigName = bigCard.querySelector('.name');
+    if(bigName){
+      bigName.style.lineHeight = '1.18';
+      bigName.style.width = '100%';
+      bigName.style.maxWidth = '100%';
+      bigName.style.overflowWrap = 'anywhere';
+      bigName.style.wordBreak = 'normal';
+      bigName.style.marginBottom = '7px';
+    }
+    const bigPriceRow = bigCard.querySelector('.price-row');
+    if(bigPriceRow){ bigPriceRow.style.gap = '24px'; bigPriceRow.style.alignItems = 'flex-end'; }
+    const bigPriceCol = bigCard.querySelector('.price-new-col');
+    if(bigPriceCol){ bigPriceCol.style.maxWidth = '72%'; bigPriceCol.style.minWidth = '0'; }
+    bigCard.querySelectorAll('.price-line,.old-price-line').forEach(el=>{ el.style.gap='8px'; });
     const bigImgWrap = bigCard.querySelector('.img-wrap');
     if(bigImgWrap) bigImgWrap.style.height = '420px';
     const bigPromoRow = bigCard.querySelector('.promo-note-row');
@@ -2247,8 +2263,14 @@ function renderCard(p){
     wrap.appendChild(bigCard);
     tempPage.appendChild(wrap);
     tempPage.appendChild(buildFooterEl());
+    tempPage.querySelectorAll('[contenteditable]').forEach(el=>{
+      el.removeAttribute('contenteditable');
+      el.removeAttribute('spellcheck');
+    });
     document.body.appendChild(tempPage);
     await Promise.all([preloadImage(p.imgData), preloadImage(p.promoImage), preloadImage(p.deposit ? 'assets/pfand-icon.png' : null)]);
+    if(document.fonts && document.fonts.ready) await document.fonts.ready;
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
     try{
       const canvas = await html2canvas(tempPage, {scale:2, useCORS:true});
       const a = document.createElement('a');
