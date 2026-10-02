@@ -62,6 +62,9 @@
   .quick-form-box select{background:#fff !important;}
   .quick-form-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:7px;}
   .quick-form-actions button{min-width:0;padding-left:7px;padding-right:7px;}
+  .quick-card-layout{margin-top:12px;padding-top:12px;border-top:1px solid #f3d4ac;}
+  .quick-card-layout label{margin:0 0 6px;font-size:11px;color:#4b3520;}
+  .quick-card-layout .hint{margin-top:5px;color:#8d6e4c;}
   .data-file-button{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;margin-bottom:8px;background:#fff;color:var(--orange-dark);border:1.5px dashed #f2b363;box-shadow:none;}
   .data-file-button:hover{background:#fff7ed;border-color:var(--orange);box-shadow:none;}
   .row{display:flex;gap:8px;}
@@ -223,6 +226,52 @@
     border-radius:4px;padding:2px 5px;display:none;}
   .card .img-wrap:hover .remove-bg{display:block;}
 
+  /* ---------- Drei auswählbare Karten-Designs ---------- */
+  .card-style-classic{border:1px solid #eadfce;border-radius:19px;padding:14px;box-shadow:0 7px 18px rgba(55,42,26,.06);}
+  .card-style-classic .img-wrap{border-radius:16px;background:linear-gradient(145deg,#fbf8f3,#fff);margin-bottom:11px;}
+  .card-style-classic .name{font-size:14px;font-weight:850;letter-spacing:-.015em;}
+  .card-style-classic .pack{font-size:10px;color:#858585;}
+  .card-style-classic .price-row{padding-top:12px;gap:10px;}
+  .card-style-classic .price-secondary{margin-top:6px;padding:5px 9px;border:1px solid #f2c98f;border-radius:999px;background:#fff8ef;}
+  .card-style-classic .price-secondary .unit-price-display{font-size:14px;color:var(--orange-dark);}
+  .card-style-classic .price-secondary .unit-note{color:#8a6c49;}
+
+  .card-style-price{display:grid;grid-template-columns:minmax(120px,.92fr) minmax(0,1.18fr);grid-template-rows:auto auto 1fr auto;column-gap:15px;row-gap:5px;border:2px solid #f2a13d;border-radius:16px;padding:14px;background:#fff;box-shadow:0 8px 20px rgba(223,110,8,.08);}
+  .card-style-price::before{content:"";position:absolute;left:calc(42% + 5px);top:13px;bottom:13px;width:4px;border-radius:4px;background:linear-gradient(180deg,var(--orange),var(--orange-dark));opacity:.9;}
+  .card-style-price>.img-wrap{grid-column:1;grid-row:1/5;height:auto !important;min-height:150px;margin:0 8px 0 0;border-radius:13px;background:linear-gradient(145deg,#fff,#fff7ef);}
+  .card-style-price>.name{grid-column:2;grid-row:1;font-size:15px;font-weight:900;line-height:1.15;min-height:0;}
+  .card-style-price>.pack{grid-column:2;grid-row:2;font-size:10px;color:#777;margin-top:0;}
+  .card-style-price>.price-row{grid-column:2;grid-row:3;display:grid;grid-template-columns:1fr;align-content:end;gap:6px;margin:0;padding:4px 0 0;}
+  .card-style-price>.price-row>.price-new-col{grid-row:1;padding:0;text-align:left;}
+  .card-style-price>.price-row>div:first-child{grid-row:2;}
+  .card-style-price .price-line{justify-content:center;padding:9px 10px;border-radius:10px;background:linear-gradient(135deg,var(--orange),var(--orange-dark));}
+  .card-style-price .price-line .new-price{font-size:25px;color:#fff;}
+  .card-style-price .price-line .unit-note{color:rgba(255,255,255,.88);}
+  .card-style-price .price-secondary{margin-top:6px;background:#fff0df;border:0;}
+  .card-style-price .price-secondary .unit-price-display{font-size:19px;color:var(--orange-dark);}
+  .card-style-price .price-secondary .unit-note{color:#9c5f1f;}
+  .card-style-price .old-price-line{justify-content:flex-start;}
+  .card-style-price>.unit-toggle{grid-column:2;grid-row:4;justify-self:end;}
+  .card-style-price>.promo-style-controls,.card-style-price>.promo-note-row,.card-style-price>.add-promo{grid-column:1/-1;}
+
+  .card-style-compact{display:grid;grid-template-columns:minmax(108px,.82fr) minmax(0,1.28fr);grid-template-rows:auto auto 1fr auto;column-gap:12px;row-gap:3px;border:0;border-radius:17px;padding:11px;background:#fff;box-shadow:0 8px 22px rgba(35,38,42,.11);}
+  .card-style-compact>.img-wrap{grid-column:1;grid-row:1/5;height:auto !important;min-height:128px;margin:0;border-radius:28px 45% 45% 28px;background:linear-gradient(145deg,#fff3e3,#fffaf4);overflow:hidden;}
+  .card-style-compact>.name{grid-column:2;grid-row:1;font-size:13px;font-weight:900;line-height:1.12;min-height:0;}
+  .card-style-compact>.pack{grid-column:2;grid-row:2;font-size:9px;color:#7b7b7b;margin:2px 0 0;}
+  .card-style-compact>.price-row{grid-column:2;grid-row:3;display:flex;flex-direction:column-reverse;align-items:stretch;justify-content:flex-start;gap:5px;margin:0;padding-top:6px;}
+  .card-style-compact>.price-row>.price-new-col{width:100%;padding:0;text-align:left;}
+  .card-style-compact .price-line{justify-content:center;padding:7px 9px;border-radius:9px;background:linear-gradient(135deg,var(--orange),var(--orange-dark));}
+  .card-style-compact .price-line .new-price{font-size:22px;color:#fff;}
+  .card-style-compact .price-line .unit-note{color:rgba(255,255,255,.9);}
+  .card-style-compact .price-secondary{width:max-content;max-width:100%;margin:5px auto 0;padding:4px 8px;border:0;background:#ffe49a;border-radius:999px;}
+  .card-style-compact .price-secondary .unit-price-display{font-size:15px;color:#8b5400;}
+  .card-style-compact .price-secondary .unit-note{color:#785921;}
+  .card-style-compact .old-price-line{justify-content:flex-start;}
+  .card-style-compact>.unit-toggle{grid-column:2;grid-row:4;justify-self:end;}
+  .card-style-compact>.promo-style-controls,.card-style-compact>.promo-note-row,.card-style-compact>.add-promo{grid-column:1/-1;}
+
+  .exporting .card-style-price::before{left:calc(42% + 5px);}
+
   .page-footer{background:#2b2320;color:#eee;font-size:10px;padding:10px 24px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
   .page-footer img{height:26px;}
   .page-footer .foot-text{flex:1;outline:none;min-width:160px;}
@@ -308,11 +357,26 @@
   .single-card-export .price-line{justify-content:flex-end;}
   .single-card-export .old-price-line{justify-content:flex-start;}
   .single-card-export .unit-note{font-size:15px !important;line-height:1.15;white-space:nowrap;}
-  .single-card-export .unit-price-display{font-size:52px !important;line-height:1;}
+  .single-card-export .unit-price-display{font-size:34px !important;line-height:1;}
   .single-card-export .new-price{font-size:52px !important;line-height:1;}
-  .single-card-export .price-secondary .new-price{font-size:34px !important;color:#a67a3d;}
+  .single-card-export .price-secondary .unit-price-display{font-size:34px !important;}
   .single-card-export .old-price{font-size:22px !important;line-height:1.05;}
   .single-card-export .promo-note-row{max-width:100%;}
+  .single-card-export.card-style-price{grid-template-columns:minmax(220px,.92fr) minmax(0,1.18fr);grid-template-rows:auto auto 1fr auto;column-gap:34px;}
+  .single-card-export.card-style-price::before{left:calc(42% + 11px);top:34px;bottom:34px;width:6px;}
+  .single-card-export.card-style-price>.img-wrap{grid-column:1;grid-row:1/5;height:auto !important;min-height:460px;margin:0 12px 0 0;}
+  .single-card-export.card-style-price>.name{grid-column:2;grid-row:1;}
+  .single-card-export.card-style-price>.pack{grid-column:2;grid-row:2;}
+  .single-card-export.card-style-price>.price-row{grid-column:2;grid-row:3;display:grid;grid-template-columns:1fr;align-content:end;gap:10px !important;margin:0;}
+  .single-card-export.card-style-price>.unit-toggle{grid-column:2;grid-row:4;}
+  .single-card-export.card-style-price>.promo-style-controls,.single-card-export.card-style-price>.promo-note-row,.single-card-export.card-style-price>.add-promo{grid-column:1/-1;}
+  .single-card-export.card-style-compact{grid-template-columns:minmax(215px,.82fr) minmax(0,1.28fr);grid-template-rows:auto auto 1fr auto;column-gap:28px;}
+  .single-card-export.card-style-compact>.img-wrap{grid-column:1;grid-row:1/5;height:auto !important;min-height:430px;margin:0;}
+  .single-card-export.card-style-compact>.name{grid-column:2;grid-row:1;}
+  .single-card-export.card-style-compact>.pack{grid-column:2;grid-row:2;}
+  .single-card-export.card-style-compact>.price-row{grid-column:2;grid-row:3;display:flex;flex-direction:column-reverse;align-items:stretch !important;gap:10px !important;margin:0;}
+  .single-card-export.card-style-compact>.unit-toggle{grid-column:2;grid-row:4;}
+  .single-card-export.card-style-compact>.promo-style-controls,.single-card-export.card-style-compact>.promo-note-row,.single-card-export.card-style-compact>.add-promo{grid-column:1/-1;}
   .sub-price-line{font-size:9px;color:#aaa;text-align:right;margin-top:1px;}
 
   #printRoot{display:none;}
@@ -510,6 +574,15 @@
           <button type="button" class="secondary" id="btnQuickSaveForm">Formular speichern</button>
         </div>
         <div class="hint">Speichert Kopf, Farben, Layout und Fußzeile – ohne Produktdaten.</div>
+        <div class="quick-card-layout">
+          <label for="cardStyleInput">Karten-Layout auswählen</label>
+          <select id="cardStyleInput">
+            <option value="classic">1 · Klassisch</option>
+            <option value="price">2 · Preisfokus</option>
+            <option value="compact">3 · Kompakt</option>
+          </select>
+          <div class="hint" id="cardStyleHint">Großes Produktbild, ruhige Flächen und klar getrennte Preise.</div>
+        </div>
       </div>
       <label>Export-Datei auswählen</label>
       <button type="button" class="data-file-button" id="btnPickDataFile">📄 Excel-, CSV- oder TSV-Datei einfügen</button>
@@ -718,7 +791,7 @@ const state = {
   footer: { text: 'G.A.B GmbH · IZ NÖ-Süd Straße 14, 37B Obj. 37B A-2351 Wiener Neudorf ÖSTERREICH · Tel. +43 2236 50 60 65 · office@global-produktion.com',
             legal: 'Druckfehler vorbehalten. Alle Preise netto exkl. MwSt. Solange der Vorrat reicht.',
             bg: '#2b2320', bgImage: null, radius: 0, margin: 0, padY: 10 },
-  layout: { mode: 'standard', cols: 2, perPage: 6, cardSize: 100, imgSize: 100 },
+  layout: { mode: 'standard', cardStyle: 'classic', cols: 2, perPage: 6, cardSize: 100, imgSize: 100 },
   products: [] // {id,name,pack,unit,oldPrice,oldPriceLabel,newPrice,unitPrice,unitPriceManual,priceLabel,unitPriceLabel,unitPriceLabelManual,deposit,badge,ref,imgFileNorm,imgData,imgSource,transparent,bundleQty,perUnit,cardW,cardH,imgH}
 };
 let rawRows = null; // parsed paste rows before mapping confirmed
@@ -1448,6 +1521,25 @@ document.getElementById('btnClearFooterBg').addEventListener('click', ()=>{
 });
 
 /* ============================= LAYOUT ============================= */
+const CARD_STYLE_HINTS = {
+  classic: 'Großes Produktbild, ruhige Flächen und klar getrennte Preise.',
+  price: 'Quer geteilt mit kräftigem orangefarbenem Preisblock.',
+  compact: 'Platzsparend und modern – ideal für viele Produkte pro Seite.'
+};
+function updateCardStyleHint(){
+  const value = document.getElementById('cardStyleInput').value;
+  document.getElementById('cardStyleHint').textContent = CARD_STYLE_HINTS[value] || CARD_STYLE_HINTS.classic;
+}
+document.getElementById('cardStyleInput').addEventListener('change', (e)=>{
+  state.layout.cardStyle = e.target.value;
+  if(state.layout.mode === 'catalog'){
+    state.layout.mode = 'standard';
+    document.getElementById('layoutModeInput').value = 'standard';
+  }
+  updateCardStyleHint();
+  renderPages();
+  setStatus('Karten-Layout gewechselt: ' + e.target.options[e.target.selectedIndex].textContent);
+});
 document.getElementById('applyAllSizesInput').addEventListener('change', (e)=>{ applyToAllSizes = e.target.checked; });
 document.getElementById('layoutModeInput').addEventListener('change', (e)=>{
   state.layout.mode = e.target.value;
@@ -1474,6 +1566,7 @@ document.getElementById('layoutModeInput').addEventListener('change', (e)=>{
 
 document.getElementById('btnApplyLayout').addEventListener('click', ()=>{
   state.layout.mode = document.getElementById('layoutModeInput').value;
+  state.layout.cardStyle = document.getElementById('cardStyleInput').value;
   state.layout.cols = parseInt(document.getElementById('colsInput').value,10);
   state.layout.perPage = parseInt(document.getElementById('perPageInput').value,10);
   state.layout.cardSize = parseInt(document.getElementById('cardSizeInput').value,10);
@@ -1504,6 +1597,8 @@ document.getElementById('btnAddCard').addEventListener('click', ()=>{
 /* ============================= TEMPLATE SAVE/LOAD ============================= */
 function applyLoadedDesignToInputs(){
   document.getElementById('layoutModeInput').value = state.layout.mode || 'standard';
+  document.getElementById('cardStyleInput').value = state.layout.cardStyle || 'classic';
+  updateCardStyleHint();
   document.getElementById('colsInput').value = state.layout.cols || 2;
   document.getElementById('perPageInput').value = state.layout.perPage || 6;
   document.getElementById('cardSizeInput').value = state.layout.cardSize || 100;
@@ -2113,7 +2208,8 @@ function escapeHtml(s){
 
 function renderCard(p){
   const card = document.createElement('div');
-  card.className = 'card';
+  const cardStyle = ['classic','price','compact'].includes(state.layout.cardStyle) ? state.layout.cardStyle : 'classic';
+  card.className = `card card-style-${cardStyle}`;
   card.dataset.id = p.id;
   if(p.cardW){ card.style.width = p.cardW+'px'; }
   if(p.cardH){ card.style.minHeight = p.cardH+'px'; }
@@ -2135,8 +2231,8 @@ function renderCard(p){
   if(pieceActive){
     const unitValue = productUnitPrice(p);
     priceNewBlock = `
-      <div class="price-line"><div class="unit-price-display" contenteditable="true" spellcheck="false">${unitValue!==null ? euro(unitValue) : ''}</div><span class="unit-note price-unit-note" data-label-kind="unit" contenteditable="true" spellcheck="false">${escapeHtml(piecePriceLabel(p))}</span></div>
-      <div class="price-line price-secondary"><div class="new-price" contenteditable="true" spellcheck="false">${p.newPrice!==null ? euro(p.newPrice) : ''}</div><span class="unit-note price-unit-note" data-label-kind="main" contenteditable="true" spellcheck="false">${escapeHtml(mainPriceLabel(p))}</span></div>`;
+      <div class="price-line"><div class="new-price" contenteditable="true" spellcheck="false">${p.newPrice!==null ? euro(p.newPrice) : ''}</div><span class="unit-note price-unit-note" data-label-kind="main" contenteditable="true" spellcheck="false">${escapeHtml(mainPriceLabel(p))}</span></div>
+      <div class="price-line price-secondary"><div class="unit-price-display" contenteditable="true" spellcheck="false">${unitValue!==null ? euro(unitValue) : ''}</div><span class="unit-note price-unit-note" data-label-kind="unit" contenteditable="true" spellcheck="false">${escapeHtml(piecePriceLabel(p))}</span></div>`;
   } else {
     priceNewBlock = `
       <div class="price-line"><div class="new-price" contenteditable="true" spellcheck="false">${p.newPrice!==null ? euro(p.newPrice) : ''}</div><span class="unit-note price-unit-note" data-label-kind="main" contenteditable="true" spellcheck="false">${escapeHtml(mainPriceLabel(p))}</span></div>`;
@@ -2327,8 +2423,8 @@ function renderCard(p){
     setFontSize('.name', exportNameSize + 'px');
     setFontSize('.pack', '19px');
     setFontSize('.old-price', '22px');
-    setFontSize('.new-price', p.perUnit ? '34px' : '52px');
-    setFontSize('.unit-price-display', '52px');
+    setFontSize('.new-price', '52px');
+    setFontSize('.unit-price-display', '34px');
     setFontSize('.badge', '18px');
     bigCard.querySelectorAll('.unit-note').forEach(el=> el.style.fontSize = '15px');
     const bigName = bigCard.querySelector('.name');
