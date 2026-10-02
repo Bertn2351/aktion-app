@@ -137,6 +137,9 @@
   .card .pack{font-size:10px;color:#888;margin-top:2px;outline:none;}
   .card .price-row{margin-top:auto;padding-top:8px;display:flex;align-items:flex-end;justify-content:space-between;gap:6px;}
   .card .old-price{font-size:12px;color:#999;text-decoration:line-through;outline:none;}
+  .card .old-price-line{display:flex;align-items:baseline;gap:5px;white-space:nowrap;}
+  .card .old-price-line .unit-note{display:inline-block;text-align:left;}
+  .card .old-price-unit-note[contenteditable="true"]{outline:none;}
   .card .price-new-col{text-align:right;}
   .card .unit-price-display{font-size:22px;font-weight:800;color:var(--orange-dark);line-height:1.1;}
   .card .unit-price-display[contenteditable="true"]{outline:none;min-width:52px;}
@@ -697,7 +700,7 @@ const state = {
             legal: 'Druckfehler vorbehalten. Alle Preise netto exkl. MwSt. Solange der Vorrat reicht.',
             bg: '#2b2320', bgImage: null, radius: 0, margin: 0, padY: 10 },
   layout: { mode: 'standard', cols: 2, perPage: 6, cardSize: 100, imgSize: 100 },
-  products: [] // {id,name,pack,unit,oldPrice,newPrice,unitPrice,priceLabel,unitPriceLabel,deposit,badge,ref,imgFileNorm,imgData,imgSource,transparent,bundleQty,perUnit,cardW,cardH,imgH}
+  products: [] // {id,name,pack,unit,oldPrice,oldPriceLabel,newPrice,unitPrice,priceLabel,unitPriceLabel,deposit,badge,ref,imgFileNorm,imgData,imgSource,transparent,bundleQty,perUnit,cardW,cardH,imgH}
 };
 let rawRows = null; // parsed paste rows before mapping confirmed
 let folderFileIndex = []; // [{norm, file}]
@@ -808,6 +811,10 @@ function productUnitPrice(p){
 function mainPriceLabel(p){
   if(p.priceLabel!==undefined && p.priceLabel!==null) return p.priceLabel;
   return p.unit ? 'je ' + expandUnit(p.unit) : 'je Karton';
+}
+function oldPriceLabel(p){
+  if(p.oldPriceLabel!==undefined && p.oldPriceLabel!==null) return p.oldPriceLabel;
+  return mainPriceLabel(p);
 }
 function inferredPiecePriceLabel(p){
   const text = ((p.pack||'') + ' ' + (p.name||'')).toLowerCase();
@@ -1004,7 +1011,7 @@ document.getElementById('btnApplyMapping').addEventListener('click', async ()=>{
       category: get('category'),
       pack: packText,
       unit: unitText,
-      oldPrice: oldP, newPrice: newP, unitPrice, priceLabel, unitPriceLabel,
+      oldPrice: oldP, oldPriceLabel:priceLabel, newPrice: newP, unitPrice, priceLabel, unitPriceLabel,
       deposit: parseBool(get('deposit')),
       badge: badge,
       promoNote: get('promoNote'), promoCondition: get('promoNote') ? '2 KOLLI KAUFEN' : '',
@@ -1416,7 +1423,7 @@ document.getElementById('btnEnableUnitPricesAll').addEventListener('click', ()=>
 document.getElementById('btnAddCard').addEventListener('click', ()=>{
   state.products.push({
     id:'p'+(uid++), name:'Neues Produkt', category:'', pack:'', unit:'', oldPrice:null, newPrice:null,
-    unitPrice:null, priceLabel:'je Karton', unitPriceLabel:'je Stück',
+    unitPrice:null, oldPriceLabel:'je Karton', priceLabel:'je Karton', unitPriceLabel:'je Stück',
     deposit:false, badge:'', badgeHidden:false, promoNote:'', promoCondition:'', promoStyle:'combo', promoColor:'green', promoImage:null,
     ref:'', imgFileNorm:'', imgRelNorm:'', imgData:null, imgSource:'none', transparent:false,
     bundleQty:null, perUnit:false, cardW:null, cardH:null, imgH:null
@@ -1613,6 +1620,7 @@ function syncDomToState(){
     const nameEl = cardEl.querySelector('.name');
     const packEl = cardEl.querySelector('.pack');
     const oldEl = cardEl.querySelector('.old-price');
+    const oldPriceLabelEl = cardEl.querySelector('.old-price-unit-note');
     const newEl = cardEl.querySelector('.new-price');
     const unitPriceEl = cardEl.querySelector('.unit-price-display');
     const priceLabelEls = cardEl.querySelectorAll('.price-unit-note');
@@ -1629,6 +1637,7 @@ function syncDomToState(){
       else p.priceLabel = value;
     });
     if(oldEl) p.oldPrice = parseNum(oldEl.textContent);
+    if(oldPriceLabelEl) p.oldPriceLabel = oldPriceLabelEl.textContent.trim();
     if(badgeEl) p.badge = badgeEl.textContent.trim();
     if(promoEl) p.promoNote = promoEl.textContent.trim();
     if(promoConditionEl) p.promoCondition = promoConditionEl.textContent.trim();
@@ -1751,7 +1760,7 @@ function renderCatalogItem(p){
       <div class="pack" contenteditable="true" spellcheck="false">${escapeHtml(p.pack)}</div>
       <div class="price-row">
         <div class="price-line"><div class="new-price" contenteditable="true" spellcheck="false">${catalogPriceHtml(p.newPrice)}</div><span class="unit-note price-unit-note" data-label-kind="main" contenteditable="true" spellcheck="false">${escapeHtml(mainPriceLabel(p))}</span></div>
-        ${p.oldPrice!==null ? `<div class="old-price" contenteditable="true" spellcheck="false">${euro(p.oldPrice)}</div>` : `<div class="old-price" contenteditable="true" spellcheck="false" style="opacity:.25"></div>`}
+        ${p.oldPrice!==null ? `<div class="old-price-line"><div class="old-price" contenteditable="true" spellcheck="false">${euro(p.oldPrice)}</div><span class="unit-note old-price-unit-note" contenteditable="true" spellcheck="false">${escapeHtml(oldPriceLabel(p))}</span></div>` : `<div class="old-price" contenteditable="true" spellcheck="false" style="opacity:.25"></div>`}
       </div>
       ${p.perUnit ? `<div class="catalog-unit-line"><span class="catalog-unit-caption">Stückpreis</span><span class="unit-price-display" contenteditable="true" spellcheck="false">${unitValue!==null ? euro(unitValue) : ''}</span><span class="unit-note price-unit-note" data-label-kind="unit" contenteditable="true" spellcheck="false">${escapeHtml(piecePriceLabel(p))}</span></div>` : ''}
       <button class="unit-toggle" type="button">${unitToggleLabel}</button>
@@ -2044,7 +2053,7 @@ function renderCard(p){
     <div class="pack" contenteditable="true" spellcheck="false">${escapeHtml(p.pack)}</div>
     <div class="price-row">
       <div>
-        ${p.oldPrice!==null ? `<div class="old-price" contenteditable="true" spellcheck="false">${euro(p.oldPrice)}</div>` : `<div class="old-price" contenteditable="true" spellcheck="false" style="opacity:.3"></div>`}
+        ${p.oldPrice!==null ? `<div class="old-price-line"><div class="old-price" contenteditable="true" spellcheck="false">${euro(p.oldPrice)}</div><span class="unit-note old-price-unit-note" contenteditable="true" spellcheck="false">${escapeHtml(oldPriceLabel(p))}</span></div>` : `<div class="old-price" contenteditable="true" spellcheck="false" style="opacity:.3"></div>`}
         ${p.deposit ? `<span class="unit-note">zzgl. Pfand</span>` : ''}
       </div>
       <div class="price-new-col">${priceNewBlock}<div class="price-resize" title="Textgröße (Name, Gebinde, Preise, Badge) ziehen"></div></div>
